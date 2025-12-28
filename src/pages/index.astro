@@ -7,6 +7,7 @@ import DesktopIcon from '../components/DesktopIcon.astro';
 import Window from '../components/Window.astro';
 import ContextMenu from '../components/ContextMenu.astro';
 import Minesweeper from '../components/Minesweeper.astro';
+import Solitaire from '../components/Solitaire.astro';
 ---
 
 <html lang="en">
@@ -500,6 +501,7 @@ import Minesweeper from '../components/Minesweeper.astro';
 				<DesktopIcon icon="📁" label="Moje Dokumenty" windowId="my-documents" />
 				<DesktopIcon icon="🗑️" label="Kosz" windowId="recycle-bin" />
 				<DesktopIcon icon="💣" label="Saper" windowId="minesweeper" />
+				<DesktopIcon icon="🃏" label="Pasjans" windowId="solitaire" />
 			</div>
 		</Desktop>
 
@@ -544,6 +546,10 @@ import Minesweeper from '../components/Minesweeper.astro';
 
 		<Window id="minesweeper" title="Saper" icon="💣" defaultX={200} defaultY={100} width={400} height={550}>
 			<Minesweeper />
+		</Window>
+
+		<Window id="solitaire" title="Pasjans" icon="🃏" defaultX={250} defaultY={50} width={700} height={600}>
+			<Solitaire />
 		</Window>
 
 		<TaskBar />
