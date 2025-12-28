@@ -5,6 +5,7 @@ import TaskBar from '../components/TaskBar.astro';
 import StartMenu from '../components/StartMenu.astro';
 import DesktopIcon from '../components/DesktopIcon.astro';
 import Window from '../components/Window.astro';
+import ContextMenu from '../components/ContextMenu.astro';
 ---
 
 <html lang="en">
@@ -59,13 +60,16 @@ import Window from '../components/Window.astro';
 
 		<TaskBar />
 		<StartMenu />
+		<ContextMenu />
 
 		<script>
 			import { initWindowManager } from '../scripts/windowManager';
+			import { initContextMenuManager } from '../scripts/contextMenuManager';
 
-			// Initialize window manager when DOM is ready
+			// Initialize managers when DOM is ready
 			document.addEventListener('DOMContentLoaded', () => {
 				initWindowManager();
+				initContextMenuManager();
 			});
 		</script>
 	</body>

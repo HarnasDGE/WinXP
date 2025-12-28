@@ -12,6 +12,16 @@ let currentWindow: HTMLElement | null = null;
 let offsetX = 0;
 let offsetY = 0;
 
+// Resizing state
+let isResizing = false;
+let resizeDirection: string | null = null;
+let resizeStartX = 0;
+let resizeStartY = 0;
+let resizeStartWidth = 0;
+let resizeStartHeight = 0;
+let resizeStartLeft = 0;
+let resizeStartTop = 0;
+
 // Window states
 interface WindowState {
   state: 'normal' | 'minimized' | 'maximized';
@@ -261,30 +271,103 @@ function initDragging(window: HTMLElement, titlebar: HTMLElement): void {
 }
 
 /**
- * Handle mouse/touch move for dragging
+ * Handle mouse/touch move for dragging and resizing
  */
 function handleMove(e: MouseEvent | TouchEvent): void {
-  if (!isDragging || !currentWindow) return;
-
   const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
   const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
-  let newX = clientX - offsetX;
-  let newY = clientY - offsetY;
+  // Handle dragging
+  if (isDragging && currentWindow && !isResizing) {
+    let newX = clientX - offsetX;
+    let newY = clientY - offsetY;
 
-  // Prevent dragging off screen (top only)
-  newY = Math.max(0, newY);
+    // Prevent dragging off screen (top only)
+    newY = Math.max(0, newY);
 
-  currentWindow.style.left = `${newX}px`;
-  currentWindow.style.top = `${newY}px`;
+    currentWindow.style.left = `${newX}px`;
+    currentWindow.style.top = `${newY}px`;
+    return;
+  }
+
+  // Handle resizing
+  if (isResizing && currentWindow && resizeDirection) {
+    const deltaX = clientX - resizeStartX;
+    const deltaY = clientY - resizeStartY;
+
+    let newWidth = resizeStartWidth;
+    let newHeight = resizeStartHeight;
+    let newLeft = resizeStartLeft;
+    let newTop = resizeStartTop;
+
+    // Calculate new dimensions based on direction
+    if (resizeDirection.includes('e')) {
+      newWidth = Math.max(200, resizeStartWidth + deltaX);
+    }
+    if (resizeDirection.includes('w')) {
+      newWidth = Math.max(200, resizeStartWidth - deltaX);
+      newLeft = resizeStartLeft + (resizeStartWidth - newWidth);
+    }
+    if (resizeDirection.includes('s')) {
+      newHeight = Math.max(150, resizeStartHeight + deltaY);
+    }
+    if (resizeDirection.includes('n')) {
+      newHeight = Math.max(150, resizeStartHeight - deltaY);
+      newTop = Math.max(0, resizeStartTop + (resizeStartHeight - newHeight));
+    }
+
+    // Apply new dimensions
+    currentWindow.style.width = `${newWidth}px`;
+    currentWindow.style.height = `${newHeight}px`;
+    currentWindow.style.left = `${newLeft}px`;
+    currentWindow.style.top = `${newTop}px`;
+  }
 }
 
 /**
- * Handle mouse/touch up to stop dragging
+ * Handle mouse/touch up to stop dragging and resizing
  */
 function handleEnd(): void {
   isDragging = false;
+  isResizing = false;
   currentWindow = null;
+  resizeDirection = null;
+}
+
+/**
+ * Initialize window resizing
+ */
+function initResizing(window: HTMLElement): void {
+  const startResize = (e: MouseEvent | TouchEvent) => {
+    const handle = e.target as HTMLElement;
+    const direction = handle.dataset.direction;
+    if (!direction) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    setActiveWindow(window);
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    const rect = window.getBoundingClientRect();
+
+    resizeDirection = direction;
+    resizeStartX = clientX;
+    resizeStartY = clientY;
+    resizeStartWidth = rect.width;
+    resizeStartHeight = rect.height;
+    resizeStartLeft = rect.left;
+    resizeStartTop = rect.top;
+    isResizing = true;
+    currentWindow = window;
+  };
+
+  window.querySelectorAll('.resize-handle').forEach((handle) => {
+    handle.addEventListener('mousedown', startResize);
+    handle.addEventListener('touchstart', startResize, { passive: false });
+  });
 }
 
 /**
@@ -306,6 +389,9 @@ export function initWindowManager(): void {
     if (titlebar) {
       initDragging(window, titlebar);
     }
+
+    // Setup resizing
+    initResizing(window);
 
     // Setup close button
     const closeBtn = window.querySelector('.titlebar-button.close');

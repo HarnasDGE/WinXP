@@ -51,6 +51,16 @@ const {
   <div class="window-content">
     <slot />
   </div>
+
+  <!-- Resize handles -->
+  <div class="resize-handle resize-n" data-direction="n"></div>
+  <div class="resize-handle resize-e" data-direction="e"></div>
+  <div class="resize-handle resize-s" data-direction="s"></div>
+  <div class="resize-handle resize-w" data-direction="w"></div>
+  <div class="resize-handle resize-ne" data-direction="ne"></div>
+  <div class="resize-handle resize-nw" data-direction="nw"></div>
+  <div class="resize-handle resize-se" data-direction="se"></div>
+  <div class="resize-handle resize-sw" data-direction="sw"></div>
 </div>
 
 <style>
@@ -212,6 +222,73 @@ const {
     padding: 8px;
   }
 
+  /* Resize handles */
+  .resize-handle {
+    position: absolute;
+    z-index: 10;
+  }
+
+  /* Edges */
+  .resize-n, .resize-s {
+    left: 8px;
+    right: 8px;
+    height: 4px;
+    cursor: ns-resize;
+  }
+
+  .resize-n {
+    top: 0;
+  }
+
+  .resize-s {
+    bottom: 0;
+  }
+
+  .resize-e, .resize-w {
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    cursor: ew-resize;
+  }
+
+  .resize-e {
+    right: 0;
+  }
+
+  .resize-w {
+    left: 0;
+  }
+
+  /* Corners */
+  .resize-ne, .resize-nw, .resize-se, .resize-sw {
+    width: 8px;
+    height: 8px;
+  }
+
+  .resize-ne {
+    top: 0;
+    right: 0;
+    cursor: nesw-resize;
+  }
+
+  .resize-nw {
+    top: 0;
+    left: 0;
+    cursor: nwse-resize;
+  }
+
+  .resize-se {
+    bottom: 0;
+    right: 0;
+    cursor: nwse-resize;
+  }
+
+  .resize-sw {
+    bottom: 0;
+    left: 0;
+    cursor: nesw-resize;
+  }
+
   /* Mobile optimization */
   @media (max-width: 768px) {
     .window {
@@ -219,6 +296,11 @@ const {
       height: calc(100vh - 60px) !important;
       left: 10px !important;
       top: 10px !important;
+    }
+
+    /* Hide resize handles on mobile - windows are full screen */
+    .resize-handle {
+      display: none;
     }
 
     .window-titlebar {
