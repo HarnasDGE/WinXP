@@ -34,6 +34,11 @@ let dragStartX = 0;
 let dragStartY = 0;
 const DRAG_THRESHOLD = 5; // pixels to move before starting drag
 
+// Double-tap detection for mobile
+let lastTapTime = 0;
+let lastTapTarget: HTMLElement | null = null;
+const DOUBLE_TAP_DELAY = 300; // milliseconds
+
 // Window states
 interface WindowState {
   state: 'normal' | 'minimized' | 'maximized';
@@ -520,9 +525,28 @@ export function initIcon(icon: HTMLElement): void {
       icon.classList.add('selected');
     });
 
-    // Drag to move icon
+    // Drag to move icon (mouse)
     icon.addEventListener('mousedown', (e) => startIconDrag(e, icon));
-    icon.addEventListener('touchstart', (e) => startIconDrag(e, icon), { passive: true });
+
+    // Touch handling with double-tap detection
+    icon.addEventListener('touchstart', (e) => {
+      const currentTime = Date.now();
+      const timeSinceLastTap = currentTime - lastTapTime;
+
+      // Check for double-tap
+      if (timeSinceLastTap < DOUBLE_TAP_DELAY && lastTapTarget === icon) {
+        // Double-tap detected - open window
+        e.preventDefault();
+        openWindow(windowId);
+        lastTapTime = 0; // Reset to prevent triple-tap
+        lastTapTarget = null;
+      } else {
+        // Single tap - prepare for potential drag or double-tap
+        lastTapTime = currentTime;
+        lastTapTarget = icon;
+        startIconDrag(e, icon);
+      }
+    }, { passive: false }); // Not passive so we can preventDefault on double-tap
   }
 }
 
