@@ -465,7 +465,6 @@ export function initWindow(window: HTMLElement): void {
  * Start dragging an icon
  */
 function startIconDrag(e: MouseEvent | TouchEvent, icon: HTMLElement): void {
-  console.log('startIconDrag called for:', icon.dataset.windowId);
   // DON'T preventDefault here - it blocks dblclick!
   // We'll prevent it later if we actually start dragging
 
@@ -490,30 +489,25 @@ function startIconDrag(e: MouseEvent | TouchEvent, icon: HTMLElement): void {
  */
 export function initIcon(icon: HTMLElement): void {
   const windowId = icon.dataset.windowId;
-  console.log('initIcon called for:', windowId, icon);
 
   if (windowId) {
     // Double-click to open (desktop and mobile)
     icon.addEventListener('dblclick', () => {
-      console.log('Double-click detected on:', windowId);
       openWindow(windowId);
     });
 
     // Single click to select
     icon.addEventListener('click', (e) => {
-      console.log('Click on icon:', windowId, 'isDraggingIcon:', isDraggingIcon);
       e.stopPropagation();
 
       // Don't select if context menu was just shown
       if (wasContextMenuJustShown()) {
-        console.log('Context menu just shown, preventing selection');
         e.preventDefault();
         return;
       }
 
       // Don't select if we just finished dragging
       if (isDraggingIcon) {
-        console.log('Was dragging, skipping selection');
         return;
       }
 

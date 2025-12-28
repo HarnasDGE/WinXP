@@ -472,13 +472,12 @@ function renderFolder(folder: Folder): void {
 
   document.body.appendChild(windowDiv);
 
-  // Initialize icon and window directly (same as system folders)
-  console.log('Calling initIcon and initWindow for new folder:', folder.id);
-  console.log('iconDiv:', iconDiv);
-  console.log('windowDiv:', windowDiv);
-  initIcon(iconDiv);
-  initWindow(windowDiv);
-  console.log('Initialization complete for:', folder.id);
+  // Initialize icon and window after DOM update
+  // Use requestAnimationFrame to ensure elements are fully rendered
+  requestAnimationFrame(() => {
+    initIcon(iconDiv);
+    initWindow(windowDiv);
+  });
 }
 
 /**
