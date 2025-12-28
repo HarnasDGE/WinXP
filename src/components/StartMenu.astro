@@ -8,7 +8,9 @@
 <div id="start-menu" class="start-menu" style="display: none;">
   <!-- Header with user info -->
   <div class="start-menu-header">
-    <div class="user-avatar">👤</div>
+    <div class="user-avatar">
+      <div class="avatar-image">🎭</div>
+    </div>
     <div class="user-name">User</div>
   </div>
 
@@ -57,8 +59,8 @@
       </div>
 
       <div class="all-programs-button">
+        <span class="all-programs-text">All Programs</span>
         <div class="all-programs-arrow">▶</div>
-        <span>All Programs</span>
       </div>
     </div>
 
@@ -228,14 +230,22 @@
   .user-avatar {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #EBF3FF 0%, #C5DDFA 100%);
+    background: linear-gradient(135deg, #E8F0FF 0%, #D0E4FF 50%, #B8D8FF 100%);
     border: 2px solid #FFFFFF;
-    border-radius: 3px;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.1),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .avatar-image {
+    font-size: 40px;
+    filter: sepia(0.3) saturate(1.2);
   }
 
   .user-name {
@@ -277,17 +287,18 @@
 
   .menu-separator {
     height: 1px;
-    background: #9DBBEA;
-    margin: 3px 4px;
-  }
-
-  .start-menu-left .menu-separator {
     background: linear-gradient(to right,
       transparent 0%,
       #c0c0c0 10%,
       #c0c0c0 90%,
       transparent 100%
     );
+    margin: 3px 4px;
+  }
+
+  .start-menu-right .menu-separator {
+    background: #9DBBEA;
+    margin: 3px 6px;
   }
 
   .menu-item {
@@ -345,7 +356,8 @@
 
   .menu-sublabel {
     font-size: 9px;
-    opacity: 0.8;
+    color: #666;
+    font-weight: normal;
   }
 
   .start-menu-right .menu-label {
@@ -362,47 +374,50 @@
   /* All Programs button */
   .all-programs-button {
     margin-top: auto;
-    padding: 6px 8px;
-    background: linear-gradient(to bottom,
-      #7CB342 0%,
-      #689F38 100%
-    );
-    color: white;
-    font-weight: bold;
+    padding: 4px 6px;
+    background: white;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    border-top: 1px solid #558B2F;
+    justify-content: space-between;
+    border-top: 1px solid #d0d0d0;
     user-select: none;
   }
 
   .all-programs-button:hover {
+    background: linear-gradient(to right,
+      #3D8CFF 0%,
+      #2371E8 100%
+    );
+  }
+
+  .all-programs-button:hover .all-programs-text {
+    color: white;
+  }
+
+  .all-programs-text {
+    color: #000;
+    font-weight: bold;
+    font-size: 11px;
+    padding-left: 4px;
+  }
+
+  .all-programs-arrow {
+    width: 22px;
+    height: 22px;
     background: linear-gradient(to bottom,
       #8BC34A 0%,
       #7CB342 100%
     );
-  }
-
-  .all-programs-button:active {
-    background: linear-gradient(to bottom,
-      #689F38 0%,
-      #558B2F 100%
-    );
-  }
-
-  .all-programs-arrow {
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%);
-    border-radius: 3px;
+    border: 1px solid #558B2F;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
-    color: #2E7D32;
+    font-size: 9px;
+    color: #1B5E20;
     font-weight: bold;
-    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.5);
+    box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.6);
   }
 
   /* Footer */
