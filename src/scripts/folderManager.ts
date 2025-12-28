@@ -472,12 +472,9 @@ function renderFolder(folder: Folder): void {
 
   document.body.appendChild(windowDiv);
 
-  // Initialize icon and window after DOM update
-  // Use requestAnimationFrame to ensure elements are fully rendered
-  requestAnimationFrame(() => {
-    initIcon(iconDiv);
-    initWindow(windowDiv);
-  });
+  // Initialize icon and window immediately
+  initIcon(iconDiv);
+  initWindow(windowDiv);
 }
 
 /**

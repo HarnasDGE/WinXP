@@ -36,7 +36,7 @@ const DRAG_THRESHOLD = 5; // pixels to move before starting drag
 
 // Double-tap detection for mobile
 let lastTapTime = 0;
-let lastTapTarget: HTMLElement | null = null;
+let lastTapIconId: string | null = null;
 const DOUBLE_TAP_DELAY = 300; // milliseconds
 
 // Window states
@@ -533,17 +533,17 @@ export function initIcon(icon: HTMLElement): void {
       const currentTime = Date.now();
       const timeSinceLastTap = currentTime - lastTapTime;
 
-      // Check for double-tap
-      if (timeSinceLastTap < DOUBLE_TAP_DELAY && lastTapTarget === icon) {
+      // Check for double-tap (same icon within 300ms)
+      if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0 && lastTapIconId === windowId) {
         // Double-tap detected - open window
         e.preventDefault();
         openWindow(windowId);
         lastTapTime = 0; // Reset to prevent triple-tap
-        lastTapTarget = null;
+        lastTapIconId = null;
       } else {
         // Single tap - prepare for potential drag or double-tap
         lastTapTime = currentTime;
-        lastTapTarget = icon;
+        lastTapIconId = windowId;
         startIconDrag(e, icon);
       }
     }, { passive: false }); // Not passive so we can preventDefault on double-tap
