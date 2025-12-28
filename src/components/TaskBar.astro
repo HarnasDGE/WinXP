@@ -59,15 +59,7 @@ import StartButton from './StartButton.astro';
     left: 0;
     right: 0;
     height: 30px;
-    background: linear-gradient(180deg,
-      #245EDC 0%,
-      #3F8CF3 6%,
-      #3583F0 10%,
-      #2C6CE7 40%,
-      #245EDC 60%,
-      #1E52C9 85%,
-      #1941A5 100%
-    );
+    background: linear-gradient(180deg, #245EDC 0%, #1941A5 100%);
     border-top: 1px solid #0831D9;
     display: flex;
     justify-content: space-between;
@@ -75,7 +67,6 @@ import StartButton from './StartButton.astro';
     z-index: 1000;
     font-family: 'Tahoma', sans-serif;
     font-size: 11px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
   .taskbar-left {
@@ -84,18 +75,10 @@ import StartButton from './StartButton.astro';
   }
 
   .taskbar-separator {
-    width: 2px;
-    margin: 4px 4px 4px 2px;
-    background: linear-gradient(to right,
-      #1441A8 0%,
-      #0D2E7C 45%,
-      #0D2E7C 50%,
-      #5393F5 55%,
-      #6BA3F7 100%
-    );
-    box-shadow:
-      -1px 0 0 rgba(0, 0, 0, 0.1),
-      1px 0 0 rgba(255, 255, 255, 0.1);
+    width: 1px;
+    margin: 3px 3px;
+    background: rgba(16, 56, 150, 0.9);
+    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
   }
 
   .quick-launch {
@@ -128,89 +111,28 @@ import StartButton from './StartButton.astro';
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 0 10px 0 8px;
-    background: linear-gradient(180deg,
-      #1B60D7 0%,
-      #2D7EEB 8%,
-      #2771E4 50%,
-      #1A5FD6 92%,
-      #1450BD 100%
-    );
-    border-left: 1px solid #0D2E7C;
-    box-shadow:
-      inset 1px 0 0 rgba(255, 255, 255, 0.08),
-      inset -1px 0 0 rgba(0, 0, 0, 0.05);
-    position: relative;
-  }
-
-  .system-tray::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 4px;
-    bottom: 4px;
-    width: 1px;
-    background: linear-gradient(180deg,
-      rgba(255, 255, 255, 0.2) 0%,
-      rgba(255, 255, 255, 0.08) 50%,
-      rgba(0, 0, 0, 0.15) 100%
-    );
+    padding: 0 10px 0 10px;
+    border-left: 1px solid rgba(16, 56, 150, 0.9);
+    box-shadow: -1px 0 0 rgba(255, 255, 255, 0.1);
   }
 
   .tray-icons {
     display: flex;
     align-items: center;
-    gap: 3px;
-    padding-left: 2px;
+    gap: 4px;
   }
 
   .tray-icon {
     font-size: 14px;
     cursor: pointer;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
-    padding: 2px;
-    border-radius: 2px;
-    transition: background 0.1s;
-  }
-
-  .tray-icon:hover {
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  .tray-icon:active {
-    background: rgba(0, 0, 0, 0.15);
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
   }
 
   .clock {
-    display: flex;
-    align-items: center;
     color: #FFFFFF;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
-    font-weight: normal;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.7);
     font-size: 11px;
-    padding: 3px 6px;
-    cursor: pointer;
+    padding: 3px 5px;
     user-select: none;
-    border-radius: 2px;
-    transition: background 0.1s;
-    min-width: 60px;
-    justify-content: center;
-  }
-
-  .clock:hover {
-    background: linear-gradient(180deg,
-      rgba(255, 255, 255, 0.15) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      rgba(0, 0, 0, 0.05) 100%
-    );
-    box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.2);
-  }
-
-  .clock:active {
-    background: linear-gradient(180deg,
-      rgba(0, 0, 0, 0.1) 0%,
-      rgba(0, 0, 0, 0.05) 100%
-    );
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 </style>

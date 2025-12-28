@@ -24,18 +24,11 @@
       #7db9e8 70%,
       #5a9fd4 100%
     );
-    /* If user adds bliss.jpg, it will be used instead */
-    background-image: url('/images/bliss.jpg');
+    /* Use background.png from images folder */
+    background-image: url('/images/background.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     overflow: hidden;
-  }
-
-  /* Fallback to gradient if image doesn't exist */
-  @supports not (background-image: url('/images/bliss.jpg')) {
-    .desktop {
-      background-image: none;
-    }
   }
 </style>
