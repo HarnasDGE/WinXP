@@ -116,11 +116,13 @@ export function deleteFolder(id: string): boolean {
   saveFolders(filtered);
 
   // Remove from DOM
-  const iconEl = document.querySelector(`[data-window-id="${id}"]`);
+  const iconEl = document.querySelector(`.desktop-icon[data-window-id="${id}"]`);
   const windowEl = document.querySelector(`.window[data-window-id="${id}"]`);
+  const taskbarBtn = document.querySelector(`.taskbar-window-button[data-window-id="${id}"]`);
 
   if (iconEl) iconEl.remove();
   if (windowEl) windowEl.remove();
+  if (taskbarBtn) taskbarBtn.remove();
 
   return true;
 }

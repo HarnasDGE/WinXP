@@ -461,10 +461,10 @@ export function initWindowManager(): void {
     const folderId = event.detail.id;
 
     // Initialize the new window and icon
-    const window = document.querySelector(`.window[data-window-id="${folderId}"]`) as HTMLElement;
-    const icon = document.querySelector(`.desktop-icon[data-window-id="${folderId}"]`) as HTMLElement;
+    const windowEl = document.querySelector(`.window[data-window-id="${folderId}"]`) as HTMLElement;
+    const iconEl = document.querySelector(`.desktop-icon[data-window-id="${folderId}"]`) as HTMLElement;
 
-    if (window) initWindow(window);
-    if (icon) initIcon(icon);
+    if (windowEl) initWindow(windowEl);
+    if (iconEl) initIcon(iconEl);
   });
 }
