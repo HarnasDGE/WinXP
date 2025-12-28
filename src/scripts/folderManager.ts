@@ -404,6 +404,7 @@ function renderFolder(folder: Folder): void {
   // Create window
   const windowDiv = document.createElement('div');
   windowDiv.className = 'window';
+  windowDiv.id = `window-${folder.id}`; // CRITICAL: openWindow searches by this ID!
   windowDiv.dataset.windowId = folder.id;
   windowDiv.style.display = 'none';
   windowDiv.style.left = '100px';
