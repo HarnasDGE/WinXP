@@ -406,11 +406,22 @@ function renderFolder(folder: Folder): void {
   windowDiv.className = 'window';
   windowDiv.id = `window-${folder.id}`; // CRITICAL: openWindow searches by this ID!
   windowDiv.dataset.windowId = folder.id;
+
+  // Set all necessary styles inline (scoped CSS from Window.astro won't apply)
   windowDiv.style.display = 'none';
+  windowDiv.style.position = 'fixed';
   windowDiv.style.left = '100px';
   windowDiv.style.top = '80px';
   windowDiv.style.width = '500px';
   windowDiv.style.height = '400px';
+  windowDiv.style.background = 'white';
+  windowDiv.style.border = '1px solid #0831D9';
+  windowDiv.style.borderRadius = '8px 8px 0 0';
+  windowDiv.style.boxShadow = '0 0 0 1px rgba(255, 255, 255, 0.5), 2px 2px 8px rgba(0, 0, 0, 0.3)';
+  windowDiv.style.zIndex = '100';
+  windowDiv.style.flexDirection = 'column';
+  windowDiv.style.minWidth = '200px';
+  windowDiv.style.minHeight = '150px';
 
   windowDiv.innerHTML = `
     <div class="window-titlebar">
