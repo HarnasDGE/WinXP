@@ -283,40 +283,106 @@ function updateFolderContents(folderId: string): void {
       const subfolderId = itemEl.dataset.folderId;
       if (!subfolderId) return;
 
-      // Double-click to open subfolder
-      itemEl.addEventListener('dblclick', () => {
-        openWindow(subfolderId);
-      });
-
-      // Single click to select
-      itemEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Remove selection from all other items
-        folderItems.querySelectorAll('.folder-grid-item').forEach(i => {
-          i.classList.remove('selected');
-        });
-        // Select this item
-        itemEl.classList.add('selected');
-      });
-
-      // Make draggable using mouse/touch events
-      initSubfolderDrag(itemEl);
+      // Initialize all interaction handlers
+      initSubfolderInteraction(itemEl, subfolderId, folderItems as HTMLElement);
     });
   }
 }
 
 /**
- * Initialize drag for subfolder items
+ * Initialize all interaction handlers for subfolder items
  */
-function initSubfolderDrag(item: HTMLElement): void {
+function initSubfolderInteraction(item: HTMLElement, folderId: string, folderItems: HTMLElement): void {
+  let touchStartTime = 0;
+  let longPressTimer: number | null = null;
+  let lastClickTime = 0;
   let dragStartX = 0;
   let dragStartY = 0;
   let currentX = 0;
   let currentY = 0;
   let isDragging = false;
+  let hasMoved = false;
   const DRAG_THRESHOLD = 5;
+  const LONG_PRESS_DURATION = 500;
+  const DOUBLE_CLICK_DELAY = 300;
 
-  const startDrag = (e: MouseEvent | TouchEvent) => {
+  // Context menu handler
+  const showContextMenu = (e: MouseEvent | TouchEvent) => {
+    e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+    // Remove any existing context menu
+    document.querySelectorAll('.folder-context-menu').forEach(el => el.remove());
+
+    const menu = document.createElement('div');
+    menu.className = 'folder-context-menu';
+    menu.style.cssText = `
+      position: fixed;
+      left: ${clientX}px;
+      top: ${clientY}px;
+      background: white;
+      border: 1px solid #ccc;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+      z-index: 10000;
+      min-width: 150px;
+    `;
+
+    menu.innerHTML = `
+      <div class="context-menu-item" data-action="open" style="padding: 6px 12px; cursor: pointer; font-size: 12px;">Otwórz</div>
+      <div style="height: 1px; background: #ccc;"></div>
+      <div class="context-menu-item" data-action="rename" style="padding: 6px 12px; cursor: pointer; font-size: 12px;">Zmień nazwę</div>
+      <div class="context-menu-item" data-action="delete" style="padding: 6px 12px; cursor: pointer; font-size: 12px;">Usuń</div>
+    `;
+
+    document.body.appendChild(menu);
+
+    // Add hover effects
+    menu.querySelectorAll('.context-menu-item').forEach(menuItem => {
+      menuItem.addEventListener('mouseenter', () => {
+        (menuItem as HTMLElement).style.background = '#e8f4ff';
+      });
+      menuItem.addEventListener('mouseleave', () => {
+        (menuItem as HTMLElement).style.background = 'white';
+      });
+      menuItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = (menuItem as HTMLElement).dataset.action;
+
+        if (action === 'open') {
+          openWindow(folderId);
+        } else if (action === 'rename') {
+          const newName = prompt('Nowa nazwa folderu:', '');
+          if (newName) {
+            renameFolder(folderId, newName);
+            updateFolderContents(item.closest('.window')?.getAttribute('data-window-id') || '');
+          }
+        } else if (action === 'delete') {
+          if (confirm('Czy na pewno chcesz usunąć ten folder?')) {
+            deleteFolder(folderId);
+            updateFolderContents(item.closest('.window')?.getAttribute('data-window-id') || '');
+          }
+        }
+
+        menu.remove();
+      });
+    });
+
+    // Close menu on outside click
+    const closeMenu = (e: Event) => {
+      if (!menu.contains(e.target as Node)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+        document.removeEventListener('contextmenu', closeMenu);
+      }
+    };
+    setTimeout(() => {
+      document.addEventListener('click', closeMenu);
+      document.addEventListener('contextmenu', closeMenu);
+    }, 100);
+  };
+
+  const startInteraction = (e: MouseEvent | TouchEvent) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
@@ -325,32 +391,57 @@ function initSubfolderDrag(item: HTMLElement): void {
     currentX = clientX;
     currentY = clientY;
     isDragging = false;
+    hasMoved = false;
+
+    // For touch, start long-press timer
+    if ('touches' in e) {
+      touchStartTime = Date.now();
+      longPressTimer = window.setTimeout(() => {
+        if (!hasMoved) {
+          showContextMenu(e);
+          // Vibrate if available
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+        }
+      }, LONG_PRESS_DURATION);
+    }
   };
 
   const handleMove = (e: MouseEvent | TouchEvent) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
-    // Update current position
     currentX = clientX;
     currentY = clientY;
 
     const distX = Math.abs(clientX - dragStartX);
     const distY = Math.abs(clientY - dragStartY);
 
+    if (distX > 2 || distY > 2) {
+      hasMoved = true;
+      // Cancel long-press if user moved
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
     if (!isDragging && (distX > DRAG_THRESHOLD || distY > DRAG_THRESHOLD)) {
       isDragging = true;
       item.classList.add('dragging');
-
-      // Set data attribute for drop handlers
       item.setAttribute('data-is-dragging', 'true');
     }
 
     // Highlight drop targets during drag
     if (isDragging) {
+      // Prevent scrolling while dragging
+      if ('touches' in e) {
+        e.preventDefault();
+      }
+
       const elementBelow = document.elementFromPoint(currentX, currentY);
       if (elementBelow) {
-        // Remove previous drop-target highlights
         document.querySelectorAll('.drop-target').forEach(el => {
           el.classList.remove('drop-target');
         });
@@ -367,66 +458,93 @@ function initSubfolderDrag(item: HTMLElement): void {
     }
   };
 
-  const handleEnd = () => {
+  const handleEnd = (e: MouseEvent | TouchEvent) => {
+    // Clear long-press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+
     if (isDragging) {
+      // Handle drop
       item.classList.remove('dragging');
       item.removeAttribute('data-is-dragging');
 
-      // Remove all drop-target highlights
       document.querySelectorAll('.drop-target').forEach(el => {
         el.classList.remove('drop-target');
       });
 
-      // Check if dropped on another grid item or desktop icon using current position
       const dropTarget = document.elementFromPoint(currentX, currentY);
 
       if (dropTarget) {
         const targetGridItem = dropTarget.closest('.folder-grid-item') as HTMLElement;
         const targetDesktopIcon = dropTarget.closest('.desktop-icon') as HTMLElement;
 
-        const sourceFolderId = item.dataset.folderId;
-
-        if (targetGridItem && targetGridItem !== item && sourceFolderId) {
+        if (targetGridItem && targetGridItem !== item) {
           const targetFolderId = targetGridItem.dataset.folderId;
           if (targetFolderId) {
-            moveFolder(sourceFolderId, targetFolderId);
+            moveFolder(folderId, targetFolderId);
           }
-        } else if (targetDesktopIcon && sourceFolderId) {
+        } else if (targetDesktopIcon) {
           const targetFolderId = targetDesktopIcon.dataset.windowId;
           if (targetFolderId) {
-            moveFolder(sourceFolderId, targetFolderId);
+            moveFolder(folderId, targetFolderId);
           }
-        } else if (dropTarget.closest('.desktop-icons') && sourceFolderId) {
-          // Dropped on desktop area
+        } else if (dropTarget.closest('.desktop-icons')) {
           const desktop = dropTarget.closest('.desktop-icons');
           if (desktop) {
             const rect = desktop.getBoundingClientRect();
             const x = currentX - rect.left;
             const y = currentY - rect.top;
-            moveToDesktop(sourceFolderId, x, y);
+            moveToDesktop(folderId, x, y);
           }
         }
+      }
+    } else if (!hasMoved) {
+      // Handle click (not a drag)
+      const now = Date.now();
+      const timeSinceLastClick = now - lastClickTime;
+
+      if (timeSinceLastClick < DOUBLE_CLICK_DELAY) {
+        // Double-click - open folder
+        openWindow(folderId);
+        lastClickTime = 0; // Reset to prevent triple-click
+      } else {
+        // Single click - select
+        folderItems.querySelectorAll('.folder-grid-item').forEach(i => {
+          i.classList.remove('selected');
+        });
+        item.classList.add('selected');
+        lastClickTime = now;
       }
     }
 
     isDragging = false;
+    hasMoved = false;
     document.removeEventListener('mousemove', handleMove);
     document.removeEventListener('touchmove', handleMove);
     document.removeEventListener('mouseup', handleEnd);
     document.removeEventListener('touchend', handleEnd);
   };
 
+  // Mouse events
   item.addEventListener('mousedown', (e) => {
-    startDrag(e);
+    // Don't interfere with right-click
+    if (e.button === 2) return;
+    startInteraction(e);
     document.addEventListener('mousemove', handleMove);
     document.addEventListener('mouseup', handleEnd);
   });
 
+  // Touch events
   item.addEventListener('touchstart', (e) => {
-    startDrag(e);
+    startInteraction(e);
     document.addEventListener('touchmove', handleMove, { passive: false });
     document.addEventListener('touchend', handleEnd);
   }, { passive: true });
+
+  // Context menu (right-click)
+  item.addEventListener('contextmenu', showContextMenu);
 }
 
 /**
