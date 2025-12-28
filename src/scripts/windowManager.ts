@@ -603,6 +603,30 @@ export function initIcon(icon: HTMLElement): void {
         startIconDrag(e, icon);
       }
     }, { passive: false }); // Not passive so we can preventDefault on double-tap
+
+    // Make droppable (for drag from folder grid items)
+    icon.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+      icon.classList.add('drop-target');
+    });
+
+    icon.addEventListener('dragleave', () => {
+      icon.classList.remove('drop-target');
+    });
+
+    icon.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      icon.classList.remove('drop-target');
+
+      const sourceFolderId = e.dataTransfer?.getData('text/plain');
+      if (sourceFolderId && windowId && sourceFolderId !== windowId) {
+        const { moveFolder } = await import('./folderManager');
+        moveFolder(sourceFolderId, windowId);
+      }
+    });
   }
 }
 
@@ -625,6 +649,40 @@ function initDesktopClick(): void {
 }
 
 /**
+ * Initialize desktop drop handling (for moving folders back to desktop)
+ */
+function initDesktopDrop(): void {
+  const desktopIcons = document.querySelector('.desktop-icons');
+  if (desktopIcons) {
+    desktopIcons.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+    });
+
+    desktopIcons.addEventListener('drop', async (e) => {
+      e.preventDefault();
+
+      const target = e.target as HTMLElement;
+      // Only process if dropped on desktop area, not on an icon
+      if (target.closest('.desktop-icon')) return;
+
+      const sourceFolderId = e.dataTransfer?.getData('text/plain');
+      if (sourceFolderId) {
+        // Calculate drop position
+        const rect = desktopIcons.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const { moveToDesktop } = await import('./folderManager');
+        moveToDesktop(sourceFolderId, x, y);
+      }
+    });
+  }
+}
+
+/**
  * Initialize window manager
  */
 export function initWindowManager(): void {
@@ -636,6 +694,9 @@ export function initWindowManager(): void {
 
   // Setup desktop click to deselect icons
   initDesktopClick();
+
+  // Setup desktop drop handling
+  initDesktopDrop();
 
   // Setup all windows
   document.querySelectorAll('.window').forEach((windowEl) => {

@@ -273,6 +273,17 @@ import ContextMenu from '../components/ContextMenu.astro';
 				border: 1px solid rgba(51, 153, 255, 0.3);
 			}
 
+			:global(.folder-grid-item.dragging) {
+				opacity: 0.5;
+				transform: scale(0.95);
+			}
+
+			:global(.folder-grid-item.drop-target) {
+				background: rgba(76, 175, 80, 0.3);
+				border: 2px dashed #4CAF50;
+				box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+			}
+
 			:global(.folder-grid-icon) {
 				font-size: 48px;
 				margin-bottom: 4px;

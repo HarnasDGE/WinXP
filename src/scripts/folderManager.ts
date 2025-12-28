@@ -227,6 +227,28 @@ export function moveFolder(sourceFolderId: string, targetFolderId: string): bool
 }
 
 /**
+ * Move a folder back to desktop (remove from parent)
+ */
+export function moveToDesktop(folderId: string, x: number = 100, y: number = 100): boolean {
+  const folders = getCustomFolders();
+  const folder = folders.find(f => f.id === folderId);
+
+  if (!folder) return false;
+
+  // Remove parent ID and set desktop position
+  folder.parentId = undefined;
+  folder.x = x;
+  folder.y = y;
+  saveFolders(folders);
+
+  // Re-render the folder on desktop
+  renderFolder(folder);
+
+  // Update the parent folder's contents
+  return true;
+}
+
+/**
  * Update folder contents display
  */
 function updateFolderContents(folderId: string): void {
@@ -248,12 +270,78 @@ function updateFolderContents(folderId: string): void {
     `;
   } else {
     folderItems.innerHTML = subfolders.map(folder => `
-      <div class="folder-grid-item" data-folder-id="${folder.id}">
+      <div class="folder-grid-item" data-folder-id="${folder.id}" draggable="true">
         <div class="folder-grid-icon">${folder.icon}</div>
         <div class="folder-grid-label">${folder.label}</div>
       </div>
     `).join('');
+
+    // Initialize drag and click handlers for each subfolder
+    const gridItems = folderItems.querySelectorAll('.folder-grid-item');
+    gridItems.forEach((item) => {
+      const itemEl = item as HTMLElement;
+      const subfolderId = itemEl.dataset.folderId;
+      if (!subfolderId) return;
+
+      // Double-click to open subfolder
+      itemEl.addEventListener('dblclick', () => {
+        openWindow(subfolderId);
+      });
+
+      // Make draggable
+      initSubfolderDrag(itemEl);
+
+      // Make droppable (can drop other folders on it)
+      initSubfolderDrop(itemEl);
+    });
   }
+}
+
+/**
+ * Initialize drop handlers for subfolder items
+ */
+function initSubfolderDrop(item: HTMLElement): void {
+  item.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    item.classList.add('drop-target');
+  });
+
+  item.addEventListener('dragleave', () => {
+    item.classList.remove('drop-target');
+  });
+
+  item.addEventListener('drop', (e) => {
+    e.preventDefault();
+    item.classList.remove('drop-target');
+
+    const sourceFolderId = e.dataTransfer?.getData('text/plain');
+    const targetFolderId = item.dataset.folderId;
+
+    if (sourceFolderId && targetFolderId && sourceFolderId !== targetFolderId) {
+      moveFolder(sourceFolderId, targetFolderId);
+    }
+  });
+}
+
+/**
+ * Initialize drag for subfolder items
+ */
+function initSubfolderDrag(item: HTMLElement): void {
+  item.addEventListener('dragstart', (e) => {
+    const folderId = item.dataset.folderId;
+    if (folderId && e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', folderId);
+      item.classList.add('dragging');
+    }
+  });
+
+  item.addEventListener('dragend', () => {
+    item.classList.remove('dragging');
+  });
 }
 
 /**
