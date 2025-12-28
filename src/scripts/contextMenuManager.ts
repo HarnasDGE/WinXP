@@ -8,6 +8,7 @@ import { openWindow } from './windowManager';
 
 let longPressTimer: number | null = null;
 let longPressTarget: HTMLElement | null = null;
+let contextMenuJustShown = false;
 const LONG_PRESS_DURATION = 500; // ms
 
 /**
@@ -19,6 +20,12 @@ function showContextMenu(x: number, y: number): void {
   if (!menu) return;
 
   positionMenu(menu, x, y);
+
+  // Set flag to prevent immediate click from opening window
+  contextMenuJustShown = true;
+  setTimeout(() => {
+    contextMenuJustShown = false;
+  }, 300);
 }
 
 /**
@@ -31,6 +38,19 @@ function showIconContextMenu(x: number, y: number, iconId: string): void {
 
   menu.dataset.targetId = iconId;
   positionMenu(menu, x, y);
+
+  // Set flag to prevent immediate click from opening window
+  contextMenuJustShown = true;
+  setTimeout(() => {
+    contextMenuJustShown = false;
+  }, 300);
+}
+
+/**
+ * Check if context menu was just shown
+ */
+export function wasContextMenuJustShown(): boolean {
+  return contextMenuJustShown;
 }
 
 /**

@@ -3,6 +3,8 @@
  * Handles window opening, closing, dragging, and focus management
  */
 
+import { wasContextMenuJustShown } from './contextMenuManager';
+
 let highestZIndex = 200;
 let activeWindow: HTMLElement | null = null;
 
@@ -429,7 +431,13 @@ export function initIcon(icon: HTMLElement): void {
     });
 
     // Mobile - single tap
-    icon.addEventListener('click', () => {
+    icon.addEventListener('click', (e) => {
+      // Don't open if context menu was just shown (long-press)
+      if (wasContextMenuJustShown()) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       openWindow(windowId);
     });
   }
