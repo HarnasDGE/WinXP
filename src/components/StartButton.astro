@@ -7,12 +7,38 @@
 
 <button id="start-button" class="start-button" type="button">
   <div class="start-button-content">
-    <svg class="windows-logo" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Windows logo flag -->
-      <path d="M0 0L8 1V9H0V0Z" fill="#F35325"/>
-      <path d="M9 1L20 2.5V9H9V1Z" fill="#81BC06"/>
-      <path d="M0 10H8V18L0 17V10Z" fill="#05A6F0"/>
-      <path d="M9 10H20V17.5L9 19V10Z" fill="#FFBA08"/>
+    <svg class="windows-logo" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Classic Windows XP flag logo with wave effect -->
+      <defs>
+        <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#FF6347;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#DC143C;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#7FFF00;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#32CD32;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1E90FF;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#0047AB;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="yellowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+
+      <!-- Red panel (top-left) -->
+      <path d="M 0,0 L 0,9.5 L 8.5,9.5 L 9,8.5 L 9,1 L 1,0 Z" fill="url(#redGrad)"/>
+
+      <!-- Green panel (top-right) -->
+      <path d="M 10.5,0.5 L 10.5,9.5 L 22,9.5 L 22,2.5 L 11,0.5 Z" fill="url(#greenGrad)"/>
+
+      <!-- Blue panel (bottom-left) -->
+      <path d="M 0,11 L 0,22 L 1,22 L 9,21 L 9,12.5 L 8.5,11 Z" fill="url(#blueGrad)"/>
+
+      <!-- Yellow panel (bottom-right) -->
+      <path d="M 10.5,11 L 10.5,21.5 L 11,21.5 L 22,19.5 L 22,11 Z" fill="url(#yellowGrad)"/>
     </svg>
     <span class="start-text">start</span>
   </div>
@@ -32,71 +58,120 @@
 
 <style>
   .start-button {
+    position: relative;
     height: 100%;
-    min-width: 100px;
-    padding: 0 12px 0 8px;
+    padding: 0 20px 0 4px;
     border: none;
-    border-radius: 0 10px 10px 0;
-    background: linear-gradient(to bottom,
-      #3dcd58 0%,
-      #36c154 48%,
-      #2da047 52%,
-      #248539 100%
+    border-radius: 0 12px 12px 0;
+    background: linear-gradient(180deg,
+      #5edb5e 0%,
+      #4cc74c 3%,
+      #43c143 5%,
+      #3eb93e 25%,
+      #34a534 50%,
+      #2d972d 75%,
+      #278c27 95%,
+      #1f7a1f 100%
     );
-    border: 1px solid #16591f;
+    border-top: 1px solid #7DE67D;
+    border-right: 1px solid #0E4B0E;
+    border-bottom: 1px solid #0A3C0A;
     border-left: none;
     box-shadow:
-      inset 1px 1px 1px rgba(255, 255, 255, 0.3),
-      inset -1px -1px 1px rgba(0, 0, 0, 0.2);
+      inset 1px 1px 0px rgba(255, 255, 255, 0.5),
+      inset -1px 0 0px rgba(0, 0, 0, 0.15),
+      inset 0 -1px 0px rgba(0, 0, 0, 0.2),
+      1px 1px 2px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    font-family: 'Tahoma', 'Microsoft Sans Serif', sans-serif;
-    transition: all 0.1s;
-    margin: 2px 0 2px 2px;
+    font-family: 'Tahoma', sans-serif;
+    margin: 3px 0 3px 0;
+    min-width: 90px;
+  }
+
+  .start-button::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 0;
+    right: 2px;
+    height: 45%;
+    background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    border-radius: 0 10px 0 0;
+    pointer-events: none;
   }
 
   .start-button:hover {
-    background: linear-gradient(to bottom,
-      #52d96a 0%,
-      #45d062 48%,
-      #36b551 52%,
-      #2d9944 100%
+    background: linear-gradient(180deg,
+      #73E873 0%,
+      #5FD85F 3%,
+      #54D154 5%,
+      #4BC94B 25%,
+      #3FB53F 50%,
+      #36A736 75%,
+      #2F9C2F 95%,
+      #268A26 100%
     );
     box-shadow:
-      inset 1px 1px 2px rgba(255, 255, 255, 0.4),
-      inset -1px -1px 1px rgba(0, 0, 0, 0.2);
+      inset 1px 1px 0px rgba(255, 255, 255, 0.6),
+      inset -1px 0 0px rgba(0, 0, 0, 0.15),
+      inset 0 -1px 0px rgba(0, 0, 0, 0.2),
+      1px 1px 3px rgba(0, 0, 0, 0.25);
   }
 
   .start-button:active,
   .start-button.active {
-    background: linear-gradient(to bottom,
-      #248539 0%,
-      #2da047 48%,
-      #36c154 52%,
-      #3dcd58 100%
+    background: linear-gradient(180deg,
+      #1f7a1f 0%,
+      #278c27 5%,
+      #2d972d 25%,
+      #34a534 50%,
+      #3eb93e 75%,
+      #43c143 95%,
+      #4cc74c 97%,
+      #5edb5e 100%
     );
     box-shadow:
-      inset 1px 1px 2px rgba(0, 0, 0, 0.3),
-      inset -1px -1px 1px rgba(255, 255, 255, 0.1);
-    padding-top: 1px;
+      inset 0 1px 3px rgba(0, 0, 0, 0.4),
+      inset 1px 0 1px rgba(0, 0, 0, 0.3),
+      inset 0 -1px 0px rgba(255, 255, 255, 0.1);
+    border-top-color: #0A3C0A;
+    border-right-color: #7DE67D;
+    border-bottom-color: #5edb5e;
+  }
+
+  .start-button:active::before,
+  .start-button.active::before {
+    display: none;
   }
 
   .start-button-content {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 5px;
     pointer-events: none;
+    position: relative;
   }
 
   .windows-logo {
-    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+    flex-shrink: 0;
   }
 
   .start-text {
-    color: white;
+    color: #FFFFFF;
     font-size: 11px;
     font-weight: bold;
     font-style: italic;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    letter-spacing: 0.5px;
+    text-shadow:
+      1px 1px 0 rgba(0, 0, 0, 0.6),
+      0 0 3px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.3px;
+    line-height: 1;
+    padding-bottom: 1px;
   }
 </style>
