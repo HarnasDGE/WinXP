@@ -1,44 +1,78 @@
 ---
 /**
  * StartMenu Component
- * Windows XP Start Menu with slide-up animation
+ * Windows XP Start Menu - authentic layout
  */
 ---
 
 <div id="start-menu" class="start-menu" style="display: none;">
-  <div class="start-menu-panel">
-    <!-- Left panel with user info and branding -->
-    <div class="start-menu-left">
-      <div class="user-panel">
-        <div class="user-avatar">👤</div>
-        <div class="user-name">User</div>
-      </div>
-      <div class="windows-branding">
-        <span class="branding-text">Windows XP</span>
-      </div>
-    </div>
+  <!-- Header with user info -->
+  <div class="start-menu-header">
+    <div class="user-avatar">👤</div>
+    <div class="user-name">User</div>
+  </div>
 
-    <!-- Right panel with menu items -->
-    <div class="start-menu-right">
-      <!-- Pinned items -->
-      <div class="menu-section pinned-items">
+  <!-- Main panel -->
+  <div class="start-menu-panel">
+    <!-- Left panel - Frequently used programs (WHITE) -->
+    <div class="start-menu-left">
+      <div class="menu-section">
         <a href="#" class="menu-item">
           <span class="menu-icon">🌐</span>
-          <span class="menu-label">Internet Explorer</span>
+          <div class="menu-text">
+            <div class="menu-label">Internet</div>
+            <div class="menu-sublabel">Internet Explorer</div>
+          </div>
         </a>
         <a href="#" class="menu-item">
           <span class="menu-icon">📧</span>
-          <span class="menu-label">E-mail</span>
+          <div class="menu-text">
+            <div class="menu-label">E-mail</div>
+            <div class="menu-sublabel">Outlook Express</div>
+          </div>
         </a>
       </div>
 
       <div class="menu-separator"></div>
 
-      <!-- All Programs -->
+      <div class="menu-section">
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🎵</span>
+          <div class="menu-text">
+            <div class="menu-label">Windows Media Player</div>
+          </div>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🌍</span>
+          <div class="menu-text">
+            <div class="menu-label">Tour Windows XP</div>
+          </div>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🔄</span>
+          <div class="menu-text">
+            <div class="menu-label">Files and Settings Transfer Wizard</div>
+          </div>
+        </a>
+      </div>
+
+      <div class="all-programs-button">
+        <div class="all-programs-arrow">▶</div>
+        <span>All Programs</span>
+      </div>
+    </div>
+
+    <!-- Right panel - System items (LIGHT BLUE) -->
+    <div class="start-menu-right">
       <div class="menu-section">
         <a href="#" class="menu-item">
           <span class="menu-icon">📁</span>
           <span class="menu-label">My Documents</span>
+        </a>
+        <a href="#" class="menu-item with-arrow">
+          <span class="menu-icon">🕐</span>
+          <span class="menu-label">My Recent Documents</span>
+          <span class="menu-arrow">▶</span>
         </a>
         <a href="#" class="menu-item">
           <span class="menu-icon">🖼️</span>
@@ -56,16 +90,35 @@
 
       <div class="menu-separator"></div>
 
-      <!-- System items -->
       <div class="menu-section">
         <a href="#" class="menu-item">
           <span class="menu-icon">⚙️</span>
           <span class="menu-label">Control Panel</span>
         </a>
-        <a href="#" class="menu-item all-programs">
-          <span class="menu-icon">📂</span>
-          <span class="menu-label">All Programs</span>
-          <span class="menu-arrow">▶</span>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🌐</span>
+          <span class="menu-label">Set Program Access and Defaults</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🖨️</span>
+          <span class="menu-label">Printers and Faxes</span>
+        </a>
+      </div>
+
+      <div class="menu-separator"></div>
+
+      <div class="menu-section">
+        <a href="#" class="menu-item">
+          <span class="menu-icon">❓</span>
+          <span class="menu-label">Help and Support</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🔍</span>
+          <span class="menu-label">Search</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">▶️</span>
+          <span class="menu-label">Run...</span>
         </a>
       </div>
     </div>
@@ -74,7 +127,7 @@
   <!-- Footer -->
   <div class="start-menu-footer">
     <a href="#" class="footer-button log-off">
-      <span class="footer-icon">🚪</span>
+      <span class="footer-icon">🔓</span>
       <span class="footer-label">Log Off</span>
     </a>
     <a href="#" class="footer-button turn-off">
@@ -140,19 +193,17 @@
     left: 0;
     flex-direction: column;
     background: white;
-    border: 1px solid #0831d9;
+    border: 2px solid #245EDC;
     border-bottom: none;
-    box-shadow:
-      2px -2px 5px rgba(0, 0, 0, 0.3),
-      inset 1px 1px 0 rgba(255, 255, 255, 0.8);
-    border-radius: 8px 8px 0 0;
-    width: 400px;
+    box-shadow: 3px -3px 8px rgba(0, 0, 0, 0.4);
+    border-radius: 10px 10px 0 0;
+    width: 430px;
     z-index: 1001;
-    font-family: 'Tahoma', 'Microsoft Sans Serif', sans-serif;
+    font-family: 'Tahoma', sans-serif;
     font-size: 11px;
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
   }
 
   .start-menu.open {
@@ -160,201 +211,271 @@
     transform: translateY(0);
   }
 
-  .start-menu-panel {
-    display: flex;
-    height: 430px;
-  }
-
-  /* Left panel */
-  .start-menu-left {
-    width: 160px;
+  /* Header */
+  .start-menu-header {
     background: linear-gradient(to bottom,
-      #3c6dd6 0%,
-      #2f5bb7 100%
+      #5A8CED 0%,
+      #3D6FE0 100%
     );
-    border-radius: 8px 0 0 0;
-    padding: 12px 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .user-panel {
+    border-radius: 8px 8px 0 0;
     padding: 8px 12px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    border-bottom: 2px solid #2451C7;
   }
 
   .user-avatar {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #e0f0ff 0%, #b8d8f8 100%);
-    border-radius: 4px;
+    background: linear-gradient(135deg, #EBF3FF 0%, #C5DDFA 100%);
+    border: 2px solid #FFFFFF;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 32px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   .user-name {
     color: white;
     font-weight: bold;
-    font-size: 14px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    font-size: 13px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
   }
 
-  .windows-branding {
-    padding: 0 12px 12px;
+  /* Main panel */
+  .start-menu-panel {
+    display: flex;
+    min-height: 360px;
   }
 
-  .branding-text {
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    font-style: italic;
-    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    transform: rotate(180deg);
+  /* Left panel - WHITE background */
+  .start-menu-left {
+    width: 210px;
+    background: white;
+    border-right: 1px solid #B8D0F2;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* Right panel */
+  /* Right panel - LIGHT BLUE background */
   .start-menu-right {
     flex: 1;
-    background: white;
-    padding: 8px 0;
-    overflow-y: auto;
+    background: linear-gradient(to bottom,
+      #D3E5FA 0%,
+      #C7DFFB 100%
+    );
+    padding: 4px 0;
   }
 
   .menu-section {
-    padding: 4px 0;
+    padding: 2px 0;
   }
 
   .menu-separator {
     height: 1px;
+    background: #9DBBEA;
+    margin: 3px 4px;
+  }
+
+  .start-menu-left .menu-separator {
     background: linear-gradient(to right,
       transparent 0%,
       #c0c0c0 10%,
       #c0c0c0 90%,
       transparent 100%
     );
-    margin: 4px 8px;
   }
 
   .menu-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 4px 8px 4px 24px;
+    gap: 10px;
+    padding: 3px 4px;
     text-decoration: none;
     color: #000;
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background 0.05s;
     position: relative;
+    min-height: 32px;
+  }
+
+  .start-menu-left .menu-item {
+    padding: 2px 8px;
   }
 
   .menu-item:hover {
     background: linear-gradient(to right,
-      #3d95ff 0%,
-      #1472ef 100%
+      #3D8CFF 0%,
+      #2371E8 100%
     );
     color: white;
   }
 
   .menu-icon {
-    font-size: 16px;
-    width: 20px;
-    text-align: center;
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .start-menu-right .menu-icon {
+    font-size: 20px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .menu-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
   }
 
   .menu-label {
-    flex: 1;
     font-size: 11px;
+    font-weight: bold;
+  }
+
+  .menu-sublabel {
+    font-size: 9px;
+    opacity: 0.8;
+  }
+
+  .start-menu-right .menu-label {
+    font-size: 11px;
+    font-weight: normal;
   }
 
   .menu-arrow {
-    font-size: 8px;
-    margin-right: 4px;
+    font-size: 10px;
+    margin-left: auto;
+    padding-right: 4px;
   }
 
-  .all-programs {
+  /* All Programs button */
+  .all-programs-button {
+    margin-top: auto;
+    padding: 6px 8px;
+    background: linear-gradient(to bottom,
+      #7CB342 0%,
+      #689F38 100%
+    );
+    color: white;
     font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid #558B2F;
+    user-select: none;
+  }
+
+  .all-programs-button:hover {
+    background: linear-gradient(to bottom,
+      #8BC34A 0%,
+      #7CB342 100%
+    );
+  }
+
+  .all-programs-button:active {
+    background: linear-gradient(to bottom,
+      #689F38 0%,
+      #558B2F 100%
+    );
+  }
+
+  .all-programs-arrow {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #2E7D32;
+    font-weight: bold;
+    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.5);
   }
 
   /* Footer */
   .start-menu-footer {
     display: flex;
     background: linear-gradient(to bottom,
-      #3d6fe5 0%,
-      #4c7ef7 100%
+      #3D6FE0 0%,
+      #5A8CED 100%
     );
-    border-top: 1px solid #0831d9;
+    border-top: 2px solid #2451C7;
+    border-radius: 0 0 8px 8px;
   }
 
   .footer-button {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
     text-decoration: none;
     color: white;
     cursor: pointer;
     transition: background 0.1s;
     font-size: 11px;
     font-weight: bold;
-  }
-
-  .footer-button:first-child {
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .footer-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .footer-button:active {
-    background: rgba(0, 0, 0, 0.1);
-  }
-
-  .footer-icon {
-    font-size: 14px;
-  }
-
-  .footer-label {
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
   }
 
-  .log-off .footer-label {
-    font-size: 10px;
+  .footer-button:first-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
   }
 
-  /* Scrollbar styling */
-  .start-menu-right::-webkit-scrollbar {
-    width: 16px;
+  .footer-button:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
 
-  .start-menu-right::-webkit-scrollbar-track {
-    background: #f0f0f0;
+  .footer-button:active {
+    background: rgba(0, 0, 0, 0.15);
   }
 
-  .start-menu-right::-webkit-scrollbar-thumb {
-    background: linear-gradient(to right,
-      #d4d4d4 0%,
-      #e8e8e8 50%,
-      #d4d4d4 100%
+  .footer-icon {
+    font-size: 16px;
+  }
+
+  .log-off {
+    background: linear-gradient(to bottom,
+      rgba(255, 165, 0, 0.3) 0%,
+      rgba(255, 140, 0, 0.2) 100%
     );
-    border: 1px solid #a0a0a0;
   }
 
-  .start-menu-right::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to right,
-      #c0c0c0 0%,
-      #d8d8d8 50%,
-      #c0c0c0 100%
+  .turn-off {
+    background: linear-gradient(to bottom,
+      rgba(255, 69, 0, 0.3) 0%,
+      rgba(255, 50, 0, 0.2) 100%
     );
+  }
+
+  /* Mobile optimization */
+  @media (max-width: 768px) {
+    .start-menu {
+      width: 90vw;
+      max-width: 430px;
+    }
+
+    .menu-item {
+      min-height: 44px;
+      padding: 8px 6px;
+    }
+
+    .footer-button {
+      padding: 14px 8px;
+    }
   }
 </style>
