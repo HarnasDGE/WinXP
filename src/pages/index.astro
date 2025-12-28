@@ -30,13 +30,12 @@ import ContextMenu from '../components/ContextMenu.astro';
 			}
 
 			.desktop-icons {
-				display: flex;
-				flex-direction: column;
-				gap: 8px;
-				padding: 8px;
 				position: absolute;
 				top: 0;
 				left: 0;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
 			}
 
 			/* Global desktop icon styles */
@@ -49,6 +48,29 @@ import ContextMenu from '../components/ContextMenu.astro';
 				cursor: pointer;
 				border: 1px solid transparent;
 				user-select: none;
+				pointer-events: auto;
+				position: absolute;
+			}
+
+			/* Default icon positions (will be overridden by dragging) */
+			:global(.desktop-icon:nth-child(1)) {
+				left: 8px;
+				top: 8px;
+			}
+
+			:global(.desktop-icon:nth-child(2)) {
+				left: 8px;
+				top: 96px;
+			}
+
+			:global(.desktop-icon:nth-child(3)) {
+				left: 8px;
+				top: 184px;
+			}
+
+			:global(.desktop-icon:nth-child(4)) {
+				left: 8px;
+				top: 272px;
 			}
 
 			:global(.desktop-icon:hover) {

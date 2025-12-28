@@ -24,6 +24,13 @@ let resizeStartHeight = 0;
 let resizeStartLeft = 0;
 let resizeStartTop = 0;
 
+// Icon dragging state
+let isDraggingIcon = false;
+let currentIcon: HTMLElement | null = null;
+let iconOffsetX = 0;
+let iconOffsetY = 0;
+let dragStartTime = 0;
+
 // Window states
 interface WindowState {
   state: 'normal' | 'minimized' | 'maximized';
@@ -279,7 +286,26 @@ function handleMove(e: MouseEvent | TouchEvent): void {
   const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
   const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
-  // Handle dragging
+  // Handle icon dragging
+  if (isDraggingIcon && currentIcon) {
+    const iconsContainer = document.querySelector('.desktop-icons');
+    if (!iconsContainer) return;
+
+    const containerRect = iconsContainer.getBoundingClientRect();
+    let newX = clientX - iconOffsetX - containerRect.left;
+    let newY = clientY - iconOffsetY - containerRect.top;
+
+    // Keep icon within desktop bounds
+    newX = Math.max(0, Math.min(newX, containerRect.width - 75));
+    newY = Math.max(0, Math.min(newY, containerRect.height - 80));
+
+    currentIcon.style.position = 'absolute';
+    currentIcon.style.left = `${newX}px`;
+    currentIcon.style.top = `${newY}px`;
+    return;
+  }
+
+  // Handle window dragging
   if (isDragging && currentWindow && !isResizing) {
     let newX = clientX - offsetX;
     let newY = clientY - offsetY;
@@ -332,7 +358,9 @@ function handleMove(e: MouseEvent | TouchEvent): void {
 function handleEnd(): void {
   isDragging = false;
   isResizing = false;
+  isDraggingIcon = false;
   currentWindow = null;
+  currentIcon = null;
   resizeDirection = null;
 }
 
@@ -420,25 +448,85 @@ export function initWindow(window: HTMLElement): void {
 }
 
 /**
+ * Start dragging an icon
+ */
+function startIconDrag(e: MouseEvent | TouchEvent, icon: HTMLElement): void {
+  e.preventDefault();
+
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+  const rect = icon.getBoundingClientRect();
+  iconOffsetX = clientX - rect.left;
+  iconOffsetY = clientY - rect.top;
+
+  dragStartTime = Date.now();
+  currentIcon = icon;
+
+  // Don't start dragging immediately - wait a bit to distinguish from click
+  setTimeout(() => {
+    if (currentIcon === icon && (Date.now() - dragStartTime) > 150) {
+      isDraggingIcon = true;
+    }
+  }, 150);
+}
+
+/**
  * Initialize a single desktop icon
  */
 export function initIcon(icon: HTMLElement): void {
   const windowId = icon.dataset.windowId;
 
   if (windowId) {
+    // Double-click to open (desktop and mobile)
     icon.addEventListener('dblclick', () => {
       openWindow(windowId);
     });
 
-    // Mobile - single tap
+    // Single click to select
     icon.addEventListener('click', (e) => {
-      // Don't open if context menu was just shown (long-press)
+      e.stopPropagation();
+
+      // Don't select if context menu was just shown
       if (wasContextMenuJustShown()) {
         e.preventDefault();
-        e.stopPropagation();
         return;
       }
-      openWindow(windowId);
+
+      // Don't select if we just finished dragging
+      if (isDraggingIcon) {
+        return;
+      }
+
+      // Remove selection from all other icons
+      document.querySelectorAll('.desktop-icon').forEach(i => {
+        i.classList.remove('selected');
+      });
+
+      // Select this icon
+      icon.classList.add('selected');
+    });
+
+    // Drag to move icon
+    icon.addEventListener('mousedown', (e) => startIconDrag(e, icon));
+    icon.addEventListener('touchstart', (e) => startIconDrag(e, icon), { passive: false });
+  }
+}
+
+/**
+ * Deselect icons when clicking on desktop
+ */
+function initDesktopClick(): void {
+  const desktop = document.querySelector('.desktop');
+  if (desktop) {
+    desktop.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      // Only deselect if clicking on desktop itself, not on icons or windows
+      if (target.classList.contains('desktop') || (target.closest('.desktop') === desktop && !target.closest('.desktop-icon') && !target.closest('.window'))) {
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+          icon.classList.remove('selected');
+        });
+      }
     });
   }
 }
@@ -452,6 +540,9 @@ export function initWindowManager(): void {
   document.addEventListener('touchmove', handleMove, { passive: false });
   document.addEventListener('mouseup', handleEnd);
   document.addEventListener('touchend', handleEnd);
+
+  // Setup desktop click to deselect icons
+  initDesktopClick();
 
   // Setup all windows
   document.querySelectorAll('.window').forEach((windowEl) => {

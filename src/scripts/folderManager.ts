@@ -257,33 +257,130 @@ function updateRecycleBinDisplay(): void {
   const recycledFolders = getRecycledFolders();
 
   if (recycledFolders.length === 0) {
-    recycleBinWindow.innerHTML = '<p>Kosz jest pusty.</p>';
+    recycleBinWindow.innerHTML = `
+      <div class="folder-view">
+        <div class="folder-toolbar">
+          <div class="toolbar-section">
+            <button class="toolbar-button" title="Wstecz">⬅️</button>
+            <button class="toolbar-button" title="Do przodu">➡️</button>
+            <button class="toolbar-button" title="W górę">⬆️</button>
+          </div>
+          <div class="toolbar-address">
+            <span class="address-label">Adres:</span>
+            <input type="text" class="address-bar" value="Kosz" readonly>
+          </div>
+        </div>
+        <div class="folder-content-area">
+          <div class="folder-sidebar">
+            <div class="sidebar-section">
+              <div class="sidebar-title">Zadania Kosza</div>
+              <a href="#" onclick="window.emptyRecycleBin(); return false;" class="sidebar-link">Opróżnij Kosz</a>
+            </div>
+          </div>
+          <div class="folder-items">
+            <div class="empty-folder-message">
+              <p>Kosz jest pusty.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
     return;
   }
 
-  let html = '<div style="padding: 8px;"><h3 style="margin-bottom: 12px;">Elementy w Koszu:</h3>';
-  html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+  let itemsHtml = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 16px; padding: 16px;">';
 
   recycledFolders.forEach(folder => {
-    const deletedDate = new Date(folder.deletedAt).toLocaleString('pl-PL');
-    html += `
-      <div style="display: flex; align-items: center; gap: 12px; padding: 8px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px;">
-        <span style="font-size: 24px;">${folder.icon}</span>
-        <div style="flex: 1;">
-          <div style="font-weight: bold;">${folder.originalLabel}</div>
-          <div style="font-size: 11px; color: #666;">Usunięto: ${deletedDate}</div>
-        </div>
-        <button onclick="window.restoreFolder('${folder.id}')" style="padding: 4px 12px; cursor: pointer;">Przywróć</button>
-        <button onclick="window.permanentlyDeleteFolder('${folder.id}')" style="padding: 4px 12px; cursor: pointer; background: #d32f2f; color: white; border: none;">Usuń na stałe</button>
+    const deletedDate = new Date(folder.deletedAt).toLocaleDateString('pl-PL');
+    itemsHtml += `
+      <div class="recycle-bin-item" data-id="${folder.id}" style="display: flex; flex-direction: column; align-items: center; padding: 8px; cursor: pointer; border: 1px solid transparent; border-radius: 4px;">
+        <div style="font-size: 48px; margin-bottom: 4px;">${folder.icon}</div>
+        <div style="font-size: 11px; text-align: center; word-wrap: break-word; max-width: 100%;">${folder.originalLabel}</div>
+        <div style="font-size: 9px; color: #666; margin-top: 2px;">${deletedDate}</div>
       </div>
     `;
   });
 
-  html += '</div>';
-  html += '<div style="margin-top: 16px;"><button onclick="window.emptyRecycleBin()" style="padding: 8px 16px; cursor: pointer; background: #d32f2f; color: white; border: none;">Opróżnij Kosz</button></div>';
-  html += '</div>';
+  itemsHtml += '</div>';
 
-  recycleBinWindow.innerHTML = html;
+  recycleBinWindow.innerHTML = `
+    <div class="folder-view">
+      <div class="folder-toolbar">
+        <div class="toolbar-section">
+          <button class="toolbar-button" title="Wstecz">⬅️</button>
+          <button class="toolbar-button" title="Do przodu">➡️</button>
+          <button class="toolbar-button" title="W górę">⬆️</button>
+        </div>
+        <div class="toolbar-address">
+          <span class="address-label">Adres:</span>
+          <input type="text" class="address-bar" value="Kosz" readonly>
+        </div>
+      </div>
+      <div class="folder-content-area">
+        <div class="folder-sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-title">Zadania Kosza</div>
+            <a href="#" onclick="window.emptyRecycleBin(); return false;" class="sidebar-link">Opróżnij Kosz</a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-title">Szczegóły</div>
+            <div style="font-size: 11px; color: #003d79; padding: 4px 8px;">
+              Elementów: ${recycledFolders.length}
+            </div>
+          </div>
+        </div>
+        <div class="folder-items" style="background: white; overflow-y: auto;">
+          ${itemsHtml}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Add click handlers to recycle bin items
+  recycleBinWindow.querySelectorAll('.recycle-bin-item').forEach(item => {
+    const itemEl = item as HTMLElement;
+    const folderId = itemEl.dataset.id;
+    if (!folderId) return;
+
+    // Highlight on hover
+    itemEl.addEventListener('mouseenter', () => {
+      itemEl.style.background = 'rgba(51, 153, 255, 0.1)';
+      itemEl.style.borderColor = 'rgba(51, 153, 255, 0.3)';
+    });
+
+    itemEl.addEventListener('mouseleave', () => {
+      itemEl.style.background = 'transparent';
+      itemEl.style.borderColor = 'transparent';
+    });
+
+    // Right-click context menu
+    itemEl.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const menu = `
+        <div style="position: fixed; left: ${e.clientX}px; top: ${e.clientY}px; background: white; border: 1px solid #ccc; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); z-index: 10000;">
+          <div onclick="window.restoreFolder('${folderId}'); this.parentElement.remove();" style="padding: 8px 16px; cursor: pointer; font-size: 12px;">Przywróć</div>
+          <div style="height: 1px; background: #ccc;"></div>
+          <div onclick="if(confirm('Czy na pewno chcesz trwale usunąć ten element?')) { window.permanentlyDeleteFolder('${folderId}'); } this.parentElement.remove();" style="padding: 8px 16px; cursor: pointer; font-size: 12px;">Usuń na stałe</div>
+        </div>
+      `;
+
+      const menuDiv = document.createElement('div');
+      menuDiv.innerHTML = menu;
+      document.body.appendChild(menuDiv.firstElementChild!);
+
+      const closeMenu = () => {
+        menuDiv.firstElementChild?.remove();
+        document.removeEventListener('click', closeMenu);
+      };
+
+      setTimeout(() => document.addEventListener('click', closeMenu), 100);
+    });
+
+    // Double-click to restore
+    itemEl.addEventListener('dblclick', () => {
+      restoreFolder(folderId);
+    });
+  });
 }
 
 /**
