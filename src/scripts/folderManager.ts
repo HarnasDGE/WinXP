@@ -270,7 +270,7 @@ function updateFolderContents(folderId: string): void {
     `;
   } else {
     folderItems.innerHTML = subfolders.map(folder => `
-      <div class="folder-grid-item" data-folder-id="${folder.id}" draggable="true">
+      <div class="folder-grid-item" data-folder-id="${folder.id}">
         <div class="folder-grid-icon">${folder.icon}</div>
         <div class="folder-grid-label">${folder.label}</div>
       </div>
@@ -288,60 +288,145 @@ function updateFolderContents(folderId: string): void {
         openWindow(subfolderId);
       });
 
-      // Make draggable
-      initSubfolderDrag(itemEl);
+      // Single click to select
+      itemEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Remove selection from all other items
+        folderItems.querySelectorAll('.folder-grid-item').forEach(i => {
+          i.classList.remove('selected');
+        });
+        // Select this item
+        itemEl.classList.add('selected');
+      });
 
-      // Make droppable (can drop other folders on it)
-      initSubfolderDrop(itemEl);
+      // Make draggable using mouse/touch events
+      initSubfolderDrag(itemEl);
     });
   }
-}
-
-/**
- * Initialize drop handlers for subfolder items
- */
-function initSubfolderDrop(item: HTMLElement): void {
-  item.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = 'move';
-    }
-    item.classList.add('drop-target');
-  });
-
-  item.addEventListener('dragleave', () => {
-    item.classList.remove('drop-target');
-  });
-
-  item.addEventListener('drop', (e) => {
-    e.preventDefault();
-    item.classList.remove('drop-target');
-
-    const sourceFolderId = e.dataTransfer?.getData('text/plain');
-    const targetFolderId = item.dataset.folderId;
-
-    if (sourceFolderId && targetFolderId && sourceFolderId !== targetFolderId) {
-      moveFolder(sourceFolderId, targetFolderId);
-    }
-  });
 }
 
 /**
  * Initialize drag for subfolder items
  */
 function initSubfolderDrag(item: HTMLElement): void {
-  item.addEventListener('dragstart', (e) => {
-    const folderId = item.dataset.folderId;
-    if (folderId && e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', folderId);
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  let isDragging = false;
+  const DRAG_THRESHOLD = 5;
+
+  const startDrag = (e: MouseEvent | TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    dragStartX = clientX;
+    dragStartY = clientY;
+    currentX = clientX;
+    currentY = clientY;
+    isDragging = false;
+  };
+
+  const handleMove = (e: MouseEvent | TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    // Update current position
+    currentX = clientX;
+    currentY = clientY;
+
+    const distX = Math.abs(clientX - dragStartX);
+    const distY = Math.abs(clientY - dragStartY);
+
+    if (!isDragging && (distX > DRAG_THRESHOLD || distY > DRAG_THRESHOLD)) {
+      isDragging = true;
       item.classList.add('dragging');
+
+      // Set data attribute for drop handlers
+      item.setAttribute('data-is-dragging', 'true');
     }
+
+    // Highlight drop targets during drag
+    if (isDragging) {
+      const elementBelow = document.elementFromPoint(currentX, currentY);
+      if (elementBelow) {
+        // Remove previous drop-target highlights
+        document.querySelectorAll('.drop-target').forEach(el => {
+          el.classList.remove('drop-target');
+        });
+
+        const targetGridItem = elementBelow.closest('.folder-grid-item') as HTMLElement;
+        const targetDesktopIcon = elementBelow.closest('.desktop-icon') as HTMLElement;
+
+        if (targetGridItem && targetGridItem !== item) {
+          targetGridItem.classList.add('drop-target');
+        } else if (targetDesktopIcon) {
+          targetDesktopIcon.classList.add('drop-target');
+        }
+      }
+    }
+  };
+
+  const handleEnd = () => {
+    if (isDragging) {
+      item.classList.remove('dragging');
+      item.removeAttribute('data-is-dragging');
+
+      // Remove all drop-target highlights
+      document.querySelectorAll('.drop-target').forEach(el => {
+        el.classList.remove('drop-target');
+      });
+
+      // Check if dropped on another grid item or desktop icon using current position
+      const dropTarget = document.elementFromPoint(currentX, currentY);
+
+      if (dropTarget) {
+        const targetGridItem = dropTarget.closest('.folder-grid-item') as HTMLElement;
+        const targetDesktopIcon = dropTarget.closest('.desktop-icon') as HTMLElement;
+
+        const sourceFolderId = item.dataset.folderId;
+
+        if (targetGridItem && targetGridItem !== item && sourceFolderId) {
+          const targetFolderId = targetGridItem.dataset.folderId;
+          if (targetFolderId) {
+            moveFolder(sourceFolderId, targetFolderId);
+          }
+        } else if (targetDesktopIcon && sourceFolderId) {
+          const targetFolderId = targetDesktopIcon.dataset.windowId;
+          if (targetFolderId) {
+            moveFolder(sourceFolderId, targetFolderId);
+          }
+        } else if (dropTarget.closest('.desktop-icons') && sourceFolderId) {
+          // Dropped on desktop area
+          const desktop = dropTarget.closest('.desktop-icons');
+          if (desktop) {
+            const rect = desktop.getBoundingClientRect();
+            const x = currentX - rect.left;
+            const y = currentY - rect.top;
+            moveToDesktop(sourceFolderId, x, y);
+          }
+        }
+      }
+    }
+
+    isDragging = false;
+    document.removeEventListener('mousemove', handleMove);
+    document.removeEventListener('touchmove', handleMove);
+    document.removeEventListener('mouseup', handleEnd);
+    document.removeEventListener('touchend', handleEnd);
+  };
+
+  item.addEventListener('mousedown', (e) => {
+    startDrag(e);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleEnd);
   });
 
-  item.addEventListener('dragend', () => {
-    item.classList.remove('dragging');
-  });
+  item.addEventListener('touchstart', (e) => {
+    startDrag(e);
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', handleEnd);
+  }, { passive: true });
 }
 
 /**
