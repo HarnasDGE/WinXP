@@ -3,7 +3,7 @@
  * Handles creation, renaming, and deletion of desktop folders
  */
 
-import { openWindow } from './windowManager';
+import { openWindow, initIcon, initWindow } from './windowManager';
 
 interface Folder {
   id: string;
@@ -472,9 +472,9 @@ function renderFolder(folder: Folder): void {
 
   document.body.appendChild(windowDiv);
 
-  // Re-initialize window manager for the new window
-  const event = new CustomEvent('folder-created', { detail: { id: folder.id } });
-  document.dispatchEvent(event);
+  // Initialize icon and window directly (same as system folders)
+  initIcon(iconDiv);
+  initWindow(windowDiv);
 }
 
 /**

@@ -566,17 +566,4 @@ export function initWindowManager(): void {
   document.querySelectorAll('.desktop-icon').forEach((iconEl) => {
     initIcon(iconEl as HTMLElement);
   });
-
-  // Listen for folder-created event
-  document.addEventListener('folder-created', (e) => {
-    const event = e as CustomEvent;
-    const folderId = event.detail.id;
-
-    // Initialize the new window and icon
-    const windowEl = document.querySelector(`.window[data-window-id="${folderId}"]`) as HTMLElement;
-    const iconEl = document.querySelector(`.desktop-icon[data-window-id="${folderId}"]`) as HTMLElement;
-
-    if (windowEl) initWindow(windowEl);
-    if (iconEl) initIcon(iconEl);
-  });
 }
