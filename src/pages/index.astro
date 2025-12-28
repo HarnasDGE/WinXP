@@ -6,6 +6,7 @@ import StartMenu from '../components/StartMenu.astro';
 import DesktopIcon from '../components/DesktopIcon.astro';
 import Window from '../components/Window.astro';
 import ContextMenu from '../components/ContextMenu.astro';
+import Minesweeper from '../components/Minesweeper.astro';
 ---
 
 <html lang="en">
@@ -498,6 +499,7 @@ import ContextMenu from '../components/ContextMenu.astro';
 			<div class="desktop-icons">
 				<DesktopIcon icon="📁" label="Moje Dokumenty" windowId="my-documents" />
 				<DesktopIcon icon="🗑️" label="Kosz" windowId="recycle-bin" />
+				<DesktopIcon icon="💣" label="Saper" windowId="minesweeper" />
 			</div>
 		</Desktop>
 
@@ -538,6 +540,10 @@ import ContextMenu from '../components/ContextMenu.astro';
 
 		<Window id="recycle-bin" title="Kosz" icon="🗑️" defaultX={150} defaultY={120} width={500} height={400}>
 			<p>Kosz jest pusty.</p>
+		</Window>
+
+		<Window id="minesweeper" title="Saper" icon="💣" defaultX={200} defaultY={100} width={400} height={550}>
+			<Minesweeper />
 		</Window>
 
 		<TaskBar />

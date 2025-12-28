@@ -1,0 +1,515 @@
+---
+/**
+ * Minesweeper Game Component
+ * Classic Windows XP Minesweeper game
+ */
+---
+
+<div class="minesweeper-game">
+  <div class="game-header">
+    <div class="mine-counter">
+      <div class="digit-display">
+        <span class="digit" data-hundreds>0</span>
+        <span class="digit" data-tens>1</span>
+        <span class="digit" data-ones>0</span>
+      </div>
+    </div>
+    <button class="reset-button" data-reset>
+      <span class="smiley">🙂</span>
+    </button>
+    <div class="timer">
+      <div class="digit-display">
+        <span class="digit" data-timer-hundreds>0</span>
+        <span class="digit" data-timer-tens>0</span>
+        <span class="digit" data-timer-ones>0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="difficulty-selector">
+    <button class="difficulty-btn active" data-difficulty="beginner">Łatwy (9x9)</button>
+    <button class="difficulty-btn" data-difficulty="intermediate">Średni (16x16)</button>
+    <button class="difficulty-btn" data-difficulty="expert">Ekspert (30x16)</button>
+  </div>
+
+  <div class="game-board" data-board></div>
+</div>
+
+<style>
+  .minesweeper-game {
+    padding: 12px;
+    background: #c0c0c0;
+    font-family: 'Tahoma', sans-serif;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #fff #808080 #808080 #fff;
+  }
+
+  .digit-display {
+    background: #000;
+    padding: 4px 6px;
+    display: flex;
+    gap: 2px;
+    border: 2px inset #808080;
+  }
+
+  .digit {
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff0000;
+    min-width: 16px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .reset-button {
+    width: 40px;
+    height: 40px;
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #fff #808080 #808080 #fff;
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .reset-button:active {
+    border-color: #808080 #fff #fff #808080;
+  }
+
+  .difficulty-selector {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .difficulty-btn {
+    padding: 6px 12px;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Tahoma', sans-serif;
+  }
+
+  .difficulty-btn:active {
+    border-color: #808080 #fff #fff #808080;
+  }
+
+  .difficulty-btn.active {
+    background: #0831D9;
+    color: white;
+    font-weight: bold;
+  }
+
+  .game-board {
+    display: grid;
+    gap: 0;
+    background: #c0c0c0;
+    border: 3px solid;
+    border-color: #808080 #fff #fff #808080;
+    padding: 6px;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  :global(.cell) {
+    width: 24px;
+    height: 24px;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Arial', sans-serif;
+  }
+
+  :global(.cell:active) {
+    border-color: #808080 #fff #fff #808080;
+  }
+
+  :global(.cell.revealed) {
+    background: #bdbdbd;
+    border: 1px solid #808080;
+    cursor: default;
+  }
+
+  :global(.cell.flagged) {
+    background: #c0c0c0;
+  }
+
+  :global(.cell.mine) {
+    background: #ff0000;
+  }
+
+  :global(.cell.number-1) { color: #0000ff; }
+  :global(.cell.number-2) { color: #008000; }
+  :global(.cell.number-3) { color: #ff0000; }
+  :global(.cell.number-4) { color: #000080; }
+  :global(.cell.number-5) { color: #800000; }
+  :global(.cell.number-6) { color: #008080; }
+  :global(.cell.number-7) { color: #000000; }
+  :global(.cell.number-8) { color: #808080; }
+</style>
+
+<script>
+  class MinesweeperGame {
+    private board: HTMLElement;
+    private resetBtn: HTMLElement;
+    private mineCounterDigits: { hundreds: HTMLElement; tens: HTMLElement; ones: HTMLElement };
+    private timerDigits: { hundreds: HTMLElement; tens: HTMLElement; ones: HTMLElement };
+    private difficultyBtns: NodeListOf<HTMLElement>;
+
+    private rows: number = 9;
+    private cols: number = 9;
+    private totalMines: number = 10;
+    private cells: Cell[][] = [];
+    private revealedCount: number = 0;
+    private flaggedCount: number = 0;
+    private gameStarted: boolean = false;
+    private gameOver: boolean = false;
+    private timer: number = 0;
+    private timerInterval: number | null = null;
+
+    constructor() {
+      this.board = document.querySelector('[data-board]')!;
+      this.resetBtn = document.querySelector('[data-reset]')!;
+
+      this.mineCounterDigits = {
+        hundreds: document.querySelector('[data-hundreds]')!,
+        tens: document.querySelector('[data-tens]')!,
+        ones: document.querySelector('[data-ones]')!
+      };
+
+      this.timerDigits = {
+        hundreds: document.querySelector('[data-timer-hundreds]')!,
+        tens: document.querySelector('[data-timer-tens]')!,
+        ones: document.querySelector('[data-timer-ones]')!
+      };
+
+      this.difficultyBtns = document.querySelectorAll('[data-difficulty]');
+
+      this.init();
+    }
+
+    private init(): void {
+      this.resetBtn.addEventListener('click', () => this.resetGame());
+
+      this.difficultyBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const difficulty = (e.target as HTMLElement).dataset.difficulty;
+          this.difficultyBtns.forEach(b => b.classList.remove('active'));
+          (e.target as HTMLElement).classList.add('active');
+          this.setDifficulty(difficulty!);
+        });
+      });
+
+      this.createBoard();
+      this.updateMineCounter();
+    }
+
+    private setDifficulty(difficulty: string): void {
+      switch(difficulty) {
+        case 'beginner':
+          this.rows = 9;
+          this.cols = 9;
+          this.totalMines = 10;
+          break;
+        case 'intermediate':
+          this.rows = 16;
+          this.cols = 16;
+          this.totalMines = 40;
+          break;
+        case 'expert':
+          this.rows = 16;
+          this.cols = 30;
+          this.totalMines = 99;
+          break;
+      }
+      this.resetGame();
+    }
+
+    private createBoard(): void {
+      this.board.innerHTML = '';
+      this.board.style.gridTemplateColumns = `repeat(${this.cols}, 24px)`;
+      this.board.style.gridTemplateRows = `repeat(${this.rows}, 24px)`;
+
+      this.cells = [];
+
+      for (let row = 0; row < this.rows; row++) {
+        this.cells[row] = [];
+        for (let col = 0; col < this.cols; col++) {
+          const cell: Cell = {
+            element: document.createElement('div'),
+            row,
+            col,
+            isMine: false,
+            isRevealed: false,
+            isFlagged: false,
+            adjacentMines: 0
+          };
+
+          cell.element.className = 'cell';
+          cell.element.dataset.row = String(row);
+          cell.element.dataset.col = String(col);
+
+          cell.element.addEventListener('click', () => this.handleCellClick(row, col));
+          cell.element.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            this.handleCellRightClick(row, col);
+          });
+
+          // Long press for mobile
+          let longPressTimer: number | null = null;
+          cell.element.addEventListener('touchstart', (e) => {
+            longPressTimer = window.setTimeout(() => {
+              e.preventDefault();
+              this.handleCellRightClick(row, col);
+              if (navigator.vibrate) navigator.vibrate(50);
+            }, 300);
+          });
+
+          cell.element.addEventListener('touchend', () => {
+            if (longPressTimer) {
+              clearTimeout(longPressTimer);
+              longPressTimer = null;
+            }
+          });
+
+          cell.element.addEventListener('touchmove', () => {
+            if (longPressTimer) {
+              clearTimeout(longPressTimer);
+              longPressTimer = null;
+            }
+          });
+
+          this.board.appendChild(cell.element);
+          this.cells[row][col] = cell;
+        }
+      }
+    }
+
+    private placeMines(excludeRow: number, excludeCol: number): void {
+      let minesPlaced = 0;
+
+      while (minesPlaced < this.totalMines) {
+        const row = Math.floor(Math.random() * this.rows);
+        const col = Math.floor(Math.random() * this.cols);
+
+        // Don't place mine on first clicked cell or adjacent cells
+        if ((row === excludeRow && col === excludeCol) ||
+            (Math.abs(row - excludeRow) <= 1 && Math.abs(col - excludeCol) <= 1)) {
+          continue;
+        }
+
+        if (!this.cells[row][col].isMine) {
+          this.cells[row][col].isMine = true;
+          minesPlaced++;
+        }
+      }
+
+      // Calculate adjacent mines for all cells
+      for (let row = 0; row < this.rows; row++) {
+        for (let col = 0; col < this.cols; col++) {
+          if (!this.cells[row][col].isMine) {
+            this.cells[row][col].adjacentMines = this.countAdjacentMines(row, col);
+          }
+        }
+      }
+    }
+
+    private countAdjacentMines(row: number, col: number): number {
+      let count = 0;
+
+      for (let r = Math.max(0, row - 1); r <= Math.min(this.rows - 1, row + 1); r++) {
+        for (let c = Math.max(0, col - 1); c <= Math.min(this.cols - 1, col + 1); c++) {
+          if (this.cells[r][c].isMine) count++;
+        }
+      }
+
+      return count;
+    }
+
+    private handleCellClick(row: number, col: number): void {
+      if (this.gameOver) return;
+
+      const cell = this.cells[row][col];
+
+      if (cell.isFlagged || cell.isRevealed) return;
+
+      // First click - place mines and start timer
+      if (!this.gameStarted) {
+        this.gameStarted = true;
+        this.placeMines(row, col);
+        this.startTimer();
+      }
+
+      this.revealCell(row, col);
+    }
+
+    private handleCellRightClick(row: number, col: number): void {
+      if (this.gameOver || !this.gameStarted) return;
+
+      const cell = this.cells[row][col];
+
+      if (cell.isRevealed) return;
+
+      cell.isFlagged = !cell.isFlagged;
+
+      if (cell.isFlagged) {
+        cell.element.textContent = '🚩';
+        cell.element.classList.add('flagged');
+        this.flaggedCount++;
+      } else {
+        cell.element.textContent = '';
+        cell.element.classList.remove('flagged');
+        this.flaggedCount--;
+      }
+
+      this.updateMineCounter();
+    }
+
+    private revealCell(row: number, col: number): void {
+      const cell = this.cells[row][col];
+
+      if (cell.isRevealed || cell.isFlagged) return;
+
+      cell.isRevealed = true;
+      cell.element.classList.add('revealed');
+      this.revealedCount++;
+
+      if (cell.isMine) {
+        // Game over - hit a mine
+        cell.element.textContent = '💣';
+        cell.element.classList.add('mine');
+        this.endGame(false);
+        return;
+      }
+
+      if (cell.adjacentMines > 0) {
+        cell.element.textContent = String(cell.adjacentMines);
+        cell.element.classList.add(`number-${cell.adjacentMines}`);
+      } else {
+        // Auto-reveal adjacent cells
+        for (let r = Math.max(0, row - 1); r <= Math.min(this.rows - 1, row + 1); r++) {
+          for (let c = Math.max(0, col - 1); c <= Math.min(this.cols - 1, col + 1); c++) {
+            if (r !== row || c !== col) {
+              this.revealCell(r, c);
+            }
+          }
+        }
+      }
+
+      // Check win condition
+      if (this.revealedCount === (this.rows * this.cols - this.totalMines)) {
+        this.endGame(true);
+      }
+    }
+
+    private startTimer(): void {
+      this.timerInterval = window.setInterval(() => {
+        this.timer++;
+        if (this.timer > 999) this.timer = 999;
+        this.updateTimer();
+      }, 1000);
+    }
+
+    private stopTimer(): void {
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+      }
+    }
+
+    private updateTimer(): void {
+      const hundreds = Math.floor(this.timer / 100);
+      const tens = Math.floor((this.timer % 100) / 10);
+      const ones = this.timer % 10;
+
+      this.timerDigits.hundreds.textContent = String(hundreds);
+      this.timerDigits.tens.textContent = String(tens);
+      this.timerDigits.ones.textContent = String(ones);
+    }
+
+    private updateMineCounter(): void {
+      const remaining = this.totalMines - this.flaggedCount;
+      const hundreds = Math.floor(Math.abs(remaining) / 100);
+      const tens = Math.floor((Math.abs(remaining) % 100) / 10);
+      const ones = Math.abs(remaining) % 10;
+
+      this.mineCounterDigits.hundreds.textContent = String(hundreds);
+      this.mineCounterDigits.tens.textContent = String(tens);
+      this.mineCounterDigits.ones.textContent = String(ones);
+    }
+
+    private endGame(won: boolean): void {
+      this.gameOver = true;
+      this.stopTimer();
+
+      const smiley = this.resetBtn.querySelector('.smiley')!;
+      smiley.textContent = won ? '😎' : '😵';
+
+      // Reveal all mines
+      for (let row = 0; row < this.rows; row++) {
+        for (let col = 0; col < this.cols; col++) {
+          const cell = this.cells[row][col];
+          if (cell.isMine && !cell.isRevealed) {
+            cell.element.textContent = '💣';
+            if (!won) cell.element.classList.add('mine');
+          }
+        }
+      }
+    }
+
+    private resetGame(): void {
+      this.gameStarted = false;
+      this.gameOver = false;
+      this.revealedCount = 0;
+      this.flaggedCount = 0;
+      this.timer = 0;
+      this.stopTimer();
+
+      const smiley = this.resetBtn.querySelector('.smiley')!;
+      smiley.textContent = '🙂';
+
+      this.createBoard();
+      this.updateMineCounter();
+      this.updateTimer();
+    }
+  }
+
+  interface Cell {
+    element: HTMLElement;
+    row: number;
+    col: number;
+    isMine: boolean;
+    isRevealed: boolean;
+    isFlagged: boolean;
+    adjacentMines: number;
+  }
+
+  // Initialize game when component is loaded
+  if (document.querySelector('[data-board]')) {
+    new MinesweeperGame();
+  }
+</script>
