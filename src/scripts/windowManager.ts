@@ -30,6 +30,9 @@ let currentIcon: HTMLElement | null = null;
 let iconOffsetX = 0;
 let iconOffsetY = 0;
 let dragStartTime = 0;
+let dragStartX = 0;
+let dragStartY = 0;
+const DRAG_THRESHOLD = 5; // pixels to move before starting drag
 
 // Window states
 interface WindowState {
@@ -286,6 +289,17 @@ function handleMove(e: MouseEvent | TouchEvent): void {
   const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
   const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
+  // Check if we should start icon dragging
+  if (!isDraggingIcon && currentIcon) {
+    const distX = Math.abs(clientX - dragStartX);
+    const distY = Math.abs(clientY - dragStartY);
+
+    // Only start dragging if mouse moved beyond threshold
+    if (distX > DRAG_THRESHOLD || distY > DRAG_THRESHOLD) {
+      isDraggingIcon = true;
+    }
+  }
+
   // Handle icon dragging
   if (isDraggingIcon && currentIcon) {
     const iconsContainer = document.querySelector('.desktop-icons');
@@ -451,7 +465,8 @@ export function initWindow(window: HTMLElement): void {
  * Start dragging an icon
  */
 function startIconDrag(e: MouseEvent | TouchEvent, icon: HTMLElement): void {
-  e.preventDefault();
+  // DON'T preventDefault here - it blocks dblclick!
+  // We'll prevent it later if we actually start dragging
 
   const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
   const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -461,14 +476,12 @@ function startIconDrag(e: MouseEvent | TouchEvent, icon: HTMLElement): void {
   iconOffsetY = clientY - rect.top;
 
   dragStartTime = Date.now();
+  dragStartX = clientX;
+  dragStartY = clientY;
   currentIcon = icon;
 
-  // Don't start dragging immediately - wait a bit to distinguish from click
-  setTimeout(() => {
-    if (currentIcon === icon && (Date.now() - dragStartTime) > 150) {
-      isDraggingIcon = true;
-    }
-  }, 150);
+  // Mark as ready to drag, but don't actually start dragging yet
+  // We'll start dragging in handleMove if the mouse moves significantly
 }
 
 /**
@@ -509,7 +522,7 @@ export function initIcon(icon: HTMLElement): void {
 
     // Drag to move icon
     icon.addEventListener('mousedown', (e) => startIconDrag(e, icon));
-    icon.addEventListener('touchstart', (e) => startIconDrag(e, icon), { passive: false });
+    icon.addEventListener('touchstart', (e) => startIconDrag(e, icon), { passive: true });
   }
 }
 
