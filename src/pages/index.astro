@@ -96,6 +96,149 @@ import ContextMenu from '../components/ContextMenu.astro';
 				color: white;
 				padding: 1px 2px;
 			}
+
+			/* Folder view styles */
+			:global(.folder-view) {
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+				overflow: hidden;
+			}
+
+			:global(.folder-toolbar) {
+				display: flex;
+				gap: 8px;
+				padding: 4px 8px;
+				background: linear-gradient(to bottom, #f3f3f3 0%, #e8e8e8 100%);
+				border-bottom: 1px solid #999;
+				align-items: center;
+			}
+
+			:global(.toolbar-section) {
+				display: flex;
+				gap: 4px;
+			}
+
+			:global(.toolbar-button) {
+				padding: 4px 8px;
+				background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+				border: 1px solid #999;
+				border-radius: 2px;
+				cursor: pointer;
+				font-size: 14px;
+			}
+
+			:global(.toolbar-button:hover) {
+				background: linear-gradient(to bottom, #fff 0%, #f0f0f0 100%);
+				border-color: #0066cc;
+			}
+
+			:global(.toolbar-button:active) {
+				background: linear-gradient(to bottom, #e8e8e8 0%, #fff 100%);
+			}
+
+			:global(.toolbar-address) {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				flex: 1;
+			}
+
+			:global(.address-label) {
+				font-size: 11px;
+				color: #333;
+				white-space: nowrap;
+			}
+
+			:global(.address-bar) {
+				flex: 1;
+				padding: 3px 6px;
+				border: 1px solid #7a96df;
+				border-radius: 2px;
+				background: white;
+				font-size: 11px;
+				min-width: 0;
+			}
+
+			:global(.folder-content-area) {
+				display: flex;
+				flex: 1;
+				overflow: hidden;
+			}
+
+			:global(.folder-sidebar) {
+				width: 180px;
+				background: linear-gradient(to right, #a1c7f2 0%, #d4e5fa 100%);
+				border-right: 1px solid #88a;
+				padding: 12px;
+				overflow-y: auto;
+			}
+
+			:global(.sidebar-section) {
+				margin-bottom: 16px;
+			}
+
+			:global(.sidebar-title) {
+				font-size: 12px;
+				font-weight: bold;
+				color: #003d79;
+				margin-bottom: 6px;
+			}
+
+			:global(.sidebar-link) {
+				display: block;
+				padding: 4px 8px;
+				font-size: 11px;
+				color: #003d79;
+				text-decoration: none;
+				margin-bottom: 2px;
+				border-radius: 2px;
+			}
+
+			:global(.sidebar-link:hover) {
+				background: rgba(255, 255, 255, 0.5);
+				text-decoration: underline;
+			}
+
+			:global(.folder-items) {
+				flex: 1;
+				background: white;
+				padding: 16px;
+				overflow-y: auto;
+			}
+
+			:global(.empty-folder-message) {
+				text-align: center;
+				color: #666;
+				padding: 40px 20px;
+			}
+
+			:global(.empty-folder-message p) {
+				font-size: 12px;
+			}
+
+			/* Mobile optimization for folder view */
+			@media (max-width: 768px) {
+				:global(.folder-sidebar) {
+					display: none;
+				}
+
+				:global(.toolbar-address) {
+					flex-direction: column;
+					align-items: stretch;
+					gap: 4px;
+				}
+
+				:global(.address-bar) {
+					font-size: 14px;
+					padding: 6px;
+				}
+
+				:global(.toolbar-button) {
+					padding: 8px 12px;
+					font-size: 16px;
+				}
+			}
 		</style>
 	</head>
 	<body>
@@ -109,7 +252,37 @@ import ContextMenu from '../components/ContextMenu.astro';
 
 		<!-- Windows -->
 		<Window id="my-documents" title="Moje Dokumenty" icon="📁" defaultX={100} defaultY={80} width={500} height={400}>
-			<p>Folder Moje Dokumenty jest pusty.</p>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" title="Do przodu">➡️</button>
+						<button class="toolbar-button" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="Moje Dokumenty" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Zadania folderów</div>
+							<a href="#" class="sidebar-link">Utwórz nowy folder</a>
+						</div>
+						<div class="sidebar-section">
+							<div class="sidebar-title">Inne miejsca</div>
+							<a href="#" class="sidebar-link">Mój komputer</a>
+							<a href="#" class="sidebar-link">Kosz</a>
+						</div>
+					</div>
+					<div class="folder-items">
+						<div class="empty-folder-message">
+							<p>Ten folder jest pusty.</p>
+						</div>
+					</div>
+				</div>
+			</div>
 		</Window>
 
 		<Window id="recycle-bin" title="Kosz" icon="🗑️" defaultX={150} defaultY={120} width={500} height={400}>

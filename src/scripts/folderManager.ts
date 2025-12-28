@@ -332,8 +332,36 @@ function renderFolder(folder: Folder): void {
         </button>
       </div>
     </div>
-    <div class="window-content">
-      <p>Folder jest pusty.</p>
+    <div class="window-content folder-view">
+      <div class="folder-toolbar">
+        <div class="toolbar-section">
+          <button class="toolbar-button" title="Wstecz">⬅️</button>
+          <button class="toolbar-button" title="Do przodu">➡️</button>
+          <button class="toolbar-button" title="W górę">⬆️</button>
+        </div>
+        <div class="toolbar-address">
+          <span class="address-label">Adres:</span>
+          <input type="text" class="address-bar" value="${folder.label}" readonly>
+        </div>
+      </div>
+      <div class="folder-content-area">
+        <div class="folder-sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-title">Zadania folderów</div>
+            <a href="#" class="sidebar-link">Utwórz nowy folder</a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-title">Inne miejsca</div>
+            <a href="#" class="sidebar-link">Moje Dokumenty</a>
+            <a href="#" class="sidebar-link">Mój komputer</a>
+          </div>
+        </div>
+        <div class="folder-items">
+          <div class="empty-folder-message">
+            <p>Ten folder jest pusty.</p>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="resize-handle resize-n" data-direction="n"></div>
     <div class="resize-handle resize-e" data-direction="e"></div>

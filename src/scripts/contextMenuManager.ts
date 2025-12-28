@@ -20,12 +20,7 @@ function showContextMenu(x: number, y: number): void {
   if (!menu) return;
 
   positionMenu(menu, x, y);
-
-  // Set flag to prevent immediate click from opening window
-  contextMenuJustShown = true;
-  setTimeout(() => {
-    contextMenuJustShown = false;
-  }, 300);
+  // Don't set flag for desktop menu - only for icon menu
 }
 
 /**
