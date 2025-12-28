@@ -1,0 +1,41 @@
+---
+/**
+ * Desktop Component
+ * Main desktop area with Windows XP Bliss background
+ */
+---
+
+<div class="desktop">
+  <slot />
+</div>
+
+<style>
+  .desktop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Windows XP Bliss background gradient as fallback */
+    background: linear-gradient(to bottom,
+      #5a9fd4 0%,
+      #7db9e8 30%,
+      #b8e1ff 50%,
+      #7db9e8 70%,
+      #5a9fd4 100%
+    );
+    /* If user adds bliss.jpg, it will be used instead */
+    background-image: url('/images/bliss.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+  }
+
+  /* Fallback to gradient if image doesn't exist */
+  @supports not (background-image: url('/images/bliss.jpg')) {
+    .desktop {
+      background-image: none;
+    }
+  }
+</style>

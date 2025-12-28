@@ -1,0 +1,102 @@
+---
+/**
+ * StartButton Component
+ * Windows XP Start button with Windows logo
+ */
+---
+
+<button id="start-button" class="start-button" type="button">
+  <div class="start-button-content">
+    <svg class="windows-logo" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Windows logo flag -->
+      <path d="M0 0L8 1V9H0V0Z" fill="#F35325"/>
+      <path d="M9 1L20 2.5V9H9V1Z" fill="#81BC06"/>
+      <path d="M0 10H8V18L0 17V10Z" fill="#05A6F0"/>
+      <path d="M9 10H20V17.5L9 19V10Z" fill="#FFBA08"/>
+    </svg>
+    <span class="start-text">start</span>
+  </div>
+</button>
+
+<script>
+  const startButton = document.getElementById('start-button');
+
+  if (startButton) {
+    startButton.addEventListener('click', () => {
+      // Dispatch custom event that StartMenu will listen to
+      const event = new CustomEvent('toggle-start-menu');
+      window.dispatchEvent(event);
+    });
+  }
+</script>
+
+<style>
+  .start-button {
+    height: 100%;
+    min-width: 100px;
+    padding: 0 12px 0 8px;
+    border: none;
+    border-radius: 0 10px 10px 0;
+    background: linear-gradient(to bottom,
+      #3dcd58 0%,
+      #36c154 48%,
+      #2da047 52%,
+      #248539 100%
+    );
+    border: 1px solid #16591f;
+    border-left: none;
+    box-shadow:
+      inset 1px 1px 1px rgba(255, 255, 255, 0.3),
+      inset -1px -1px 1px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    font-family: 'Tahoma', 'Microsoft Sans Serif', sans-serif;
+    transition: all 0.1s;
+    margin: 2px 0 2px 2px;
+  }
+
+  .start-button:hover {
+    background: linear-gradient(to bottom,
+      #52d96a 0%,
+      #45d062 48%,
+      #36b551 52%,
+      #2d9944 100%
+    );
+    box-shadow:
+      inset 1px 1px 2px rgba(255, 255, 255, 0.4),
+      inset -1px -1px 1px rgba(0, 0, 0, 0.2);
+  }
+
+  .start-button:active,
+  .start-button.active {
+    background: linear-gradient(to bottom,
+      #248539 0%,
+      #2da047 48%,
+      #36c154 52%,
+      #3dcd58 100%
+    );
+    box-shadow:
+      inset 1px 1px 2px rgba(0, 0, 0, 0.3),
+      inset -1px -1px 1px rgba(255, 255, 255, 0.1);
+    padding-top: 1px;
+  }
+
+  .start-button-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+  }
+
+  .windows-logo {
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+  }
+
+  .start-text {
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    font-style: italic;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.5px;
+  }
+</style>

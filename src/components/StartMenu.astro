@@ -1,0 +1,360 @@
+---
+/**
+ * StartMenu Component
+ * Windows XP Start Menu with slide-up animation
+ */
+---
+
+<div id="start-menu" class="start-menu" style="display: none;">
+  <div class="start-menu-panel">
+    <!-- Left panel with user info and branding -->
+    <div class="start-menu-left">
+      <div class="user-panel">
+        <div class="user-avatar">👤</div>
+        <div class="user-name">User</div>
+      </div>
+      <div class="windows-branding">
+        <span class="branding-text">Windows XP</span>
+      </div>
+    </div>
+
+    <!-- Right panel with menu items -->
+    <div class="start-menu-right">
+      <!-- Pinned items -->
+      <div class="menu-section pinned-items">
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🌐</span>
+          <span class="menu-label">Internet Explorer</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">📧</span>
+          <span class="menu-label">E-mail</span>
+        </a>
+      </div>
+
+      <div class="menu-separator"></div>
+
+      <!-- All Programs -->
+      <div class="menu-section">
+        <a href="#" class="menu-item">
+          <span class="menu-icon">📁</span>
+          <span class="menu-label">My Documents</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🖼️</span>
+          <span class="menu-label">My Pictures</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">🎵</span>
+          <span class="menu-label">My Music</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span class="menu-icon">💻</span>
+          <span class="menu-label">My Computer</span>
+        </a>
+      </div>
+
+      <div class="menu-separator"></div>
+
+      <!-- System items -->
+      <div class="menu-section">
+        <a href="#" class="menu-item">
+          <span class="menu-icon">⚙️</span>
+          <span class="menu-label">Control Panel</span>
+        </a>
+        <a href="#" class="menu-item all-programs">
+          <span class="menu-icon">📂</span>
+          <span class="menu-label">All Programs</span>
+          <span class="menu-arrow">▶</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="start-menu-footer">
+    <a href="#" class="footer-button log-off">
+      <span class="footer-icon">🚪</span>
+      <span class="footer-label">Log Off</span>
+    </a>
+    <a href="#" class="footer-button turn-off">
+      <span class="footer-icon">⏻</span>
+      <span class="footer-label">Turn Off Computer</span>
+    </a>
+  </div>
+</div>
+
+<script>
+  const startMenu = document.getElementById('start-menu');
+  const startButton = document.getElementById('start-button');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    if (startMenu && startButton) {
+      isMenuOpen = !isMenuOpen;
+
+      if (isMenuOpen) {
+        startMenu.style.display = 'flex';
+        // Trigger reflow for animation
+        void startMenu.offsetWidth;
+        startMenu.classList.add('open');
+        startButton.classList.add('active');
+      } else {
+        startMenu.classList.remove('open');
+        startButton.classList.remove('active');
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+          if (!isMenuOpen) {
+            startMenu.style.display = 'none';
+          }
+        }, 200);
+      }
+    }
+  }
+
+  // Listen for toggle event from StartButton
+  window.addEventListener('toggle-start-menu', toggleMenu);
+
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (startMenu && startButton && isMenuOpen) {
+      const target = e.target as HTMLElement;
+      if (!startMenu.contains(target) && !startButton.contains(target)) {
+        toggleMenu();
+      }
+    }
+  });
+
+  // Prevent menu items from closing menu when clicked (for now)
+  if (startMenu) {
+    startMenu.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+</script>
+
+<style>
+  .start-menu {
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    flex-direction: column;
+    background: white;
+    border: 1px solid #0831d9;
+    border-bottom: none;
+    box-shadow:
+      2px -2px 5px rgba(0, 0, 0, 0.3),
+      inset 1px 1px 0 rgba(255, 255, 255, 0.8);
+    border-radius: 8px 8px 0 0;
+    width: 400px;
+    z-index: 1001;
+    font-family: 'Tahoma', 'Microsoft Sans Serif', sans-serif;
+    font-size: 11px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  }
+
+  .start-menu.open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .start-menu-panel {
+    display: flex;
+    height: 430px;
+  }
+
+  /* Left panel */
+  .start-menu-left {
+    width: 160px;
+    background: linear-gradient(to bottom,
+      #3c6dd6 0%,
+      #2f5bb7 100%
+    );
+    border-radius: 8px 0 0 0;
+    padding: 12px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .user-panel {
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .user-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #e0f0ff 0%, #b8d8f8 100%);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .user-name {
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .windows-branding {
+    padding: 0 12px 12px;
+  }
+
+  .branding-text {
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    font-style: italic;
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+  }
+
+  /* Right panel */
+  .start-menu-right {
+    flex: 1;
+    background: white;
+    padding: 8px 0;
+    overflow-y: auto;
+  }
+
+  .menu-section {
+    padding: 4px 0;
+  }
+
+  .menu-separator {
+    height: 1px;
+    background: linear-gradient(to right,
+      transparent 0%,
+      #c0c0c0 10%,
+      #c0c0c0 90%,
+      transparent 100%
+    );
+    margin: 4px 8px;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px 4px 24px;
+    text-decoration: none;
+    color: #000;
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative;
+  }
+
+  .menu-item:hover {
+    background: linear-gradient(to right,
+      #3d95ff 0%,
+      #1472ef 100%
+    );
+    color: white;
+  }
+
+  .menu-icon {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+  }
+
+  .menu-label {
+    flex: 1;
+    font-size: 11px;
+  }
+
+  .menu-arrow {
+    font-size: 8px;
+    margin-right: 4px;
+  }
+
+  .all-programs {
+    font-weight: bold;
+  }
+
+  /* Footer */
+  .start-menu-footer {
+    display: flex;
+    background: linear-gradient(to bottom,
+      #3d6fe5 0%,
+      #4c7ef7 100%
+    );
+    border-top: 1px solid #0831d9;
+  }
+
+  .footer-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: white;
+    cursor: pointer;
+    transition: background 0.1s;
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  .footer-button:first-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .footer-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-button:active {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .footer-icon {
+    font-size: 14px;
+  }
+
+  .footer-label {
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  }
+
+  .log-off .footer-label {
+    font-size: 10px;
+  }
+
+  /* Scrollbar styling */
+  .start-menu-right::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  .start-menu-right::-webkit-scrollbar-track {
+    background: #f0f0f0;
+  }
+
+  .start-menu-right::-webkit-scrollbar-thumb {
+    background: linear-gradient(to right,
+      #d4d4d4 0%,
+      #e8e8e8 50%,
+      #d4d4d4 100%
+    );
+    border: 1px solid #a0a0a0;
+  }
+
+  .start-menu-right::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to right,
+      #c0c0c0 0%,
+      #d8d8d8 50%,
+      #c0c0c0 100%
+    );
+  }
+</style>

@@ -1,0 +1,161 @@
+---
+/**
+ * TaskBar Component
+ * Windows XP style taskbar at the bottom of the screen
+ */
+import StartButton from './StartButton.astro';
+---
+
+<div class="taskbar">
+  <div class="taskbar-left">
+    <StartButton />
+    <div class="taskbar-separator"></div>
+    <div class="quick-launch">
+      <!-- Quick launch icons can be added here later -->
+    </div>
+  </div>
+
+  <div class="taskbar-center">
+    <!-- Running applications will appear here -->
+  </div>
+
+  <div class="taskbar-right">
+    <div class="system-tray">
+      <div class="tray-icons">
+        <!-- System tray icons -->
+        <span class="tray-icon" title="Volume">🔊</span>
+        <span class="tray-icon" title="Network">🌐</span>
+      </div>
+      <div class="clock">
+        <span id="taskbar-time">12:00 PM</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Update clock
+  function updateClock() {
+    const clockElement = document.getElementById('taskbar-time');
+    if (clockElement) {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      clockElement.textContent = `${displayHours}:${minutes} ${ampm}`;
+    }
+  }
+
+  // Update immediately and then every minute
+  updateClock();
+  setInterval(updateClock, 60000);
+</script>
+
+<style>
+  .taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 8%, #245edb 92%, #1941a5 100%);
+    border-top: 1px solid #0831d9;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    z-index: 1000;
+    font-family: 'Tahoma', 'Microsoft Sans Serif', sans-serif;
+    font-size: 11px;
+    box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.1);
+  }
+
+  .taskbar-left {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+  }
+
+  .taskbar-separator {
+    width: 3px;
+    background: linear-gradient(to right,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.2) 50%,
+      rgba(255, 255, 255, 0.1) 51%,
+      transparent 100%
+    );
+    margin: 3px 2px;
+  }
+
+  .quick-launch {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+  }
+
+  .taskbar-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .taskbar-center::-webkit-scrollbar {
+    display: none;
+  }
+
+  .taskbar-right {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .system-tray {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+    background: linear-gradient(to bottom,
+      rgba(18, 107, 233, 0.4) 0%,
+      rgba(18, 107, 233, 0.6) 50%,
+      rgba(18, 107, 233, 0.4) 100%
+    );
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: 1px solid rgba(0, 0, 0, 0.2);
+    min-width: 100px;
+  }
+
+  .tray-icons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .tray-icon {
+    font-size: 13px;
+    cursor: pointer;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+    transition: transform 0.1s;
+  }
+
+  .tray-icon:hover {
+    transform: scale(1.1);
+  }
+
+  .clock {
+    color: white;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    padding: 2px 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .clock:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+</style>

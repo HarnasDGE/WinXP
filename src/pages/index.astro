@@ -1,5 +1,8 @@
 ---
 import OrientationGuard from '../components/OrientationGuard.astro';
+import Desktop from '../components/Desktop.astro';
+import TaskBar from '../components/TaskBar.astro';
+import StartMenu from '../components/StartMenu.astro';
 ---
 
 <html lang="en">
@@ -8,10 +11,28 @@ import OrientationGuard from '../components/OrientationGuard.astro';
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>Windows XP</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: 'Tahoma', 'Microsoft Sans Serif', sans-serif;
+				overflow: hidden;
+				width: 100vw;
+				height: 100vh;
+			}
+		</style>
 	</head>
 	<body>
 		<OrientationGuard />
-		<h1>Astro</h1>
+		<Desktop>
+			<!-- Desktop icons will go here -->
+		</Desktop>
+		<TaskBar />
+		<StartMenu />
 	</body>
 </html>
