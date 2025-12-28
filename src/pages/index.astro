@@ -263,9 +263,16 @@ import ContextMenu from '../components/ContextMenu.astro';
 				align-items: center;
 				width: 80px;
 				padding: 8px;
-				cursor: pointer;
+				cursor: grab;
 				border: 1px solid transparent;
 				border-radius: 3px;
+				user-select: none;
+				-webkit-user-select: none;
+				touch-action: none;
+			}
+
+			:global(.folder-grid-item:active) {
+				cursor: grabbing;
 			}
 
 			:global(.folder-grid-item:hover) {
@@ -273,9 +280,15 @@ import ContextMenu from '../components/ContextMenu.astro';
 				border: 1px solid rgba(51, 153, 255, 0.3);
 			}
 
+			:global(.folder-grid-item.selected) {
+				background: rgba(51, 153, 255, 0.4);
+				border: 1px solid rgba(51, 153, 255, 0.6);
+			}
+
 			:global(.folder-grid-item.dragging) {
 				opacity: 0.5;
 				transform: scale(0.95);
+				cursor: grabbing;
 			}
 
 			:global(.folder-grid-item.drop-target) {
