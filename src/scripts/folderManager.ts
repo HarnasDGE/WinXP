@@ -11,6 +11,7 @@ interface Folder {
   label: string;
   x: number;
   y: number;
+  parentId?: string; // ID of parent folder, undefined for desktop folders
 }
 
 interface RecycledFolder extends Folder {
@@ -179,6 +180,80 @@ export function deleteFolder(id: string): boolean {
   updateRecycleBinDisplay();
 
   return true;
+}
+
+/**
+ * Move a folder into another folder
+ */
+export function moveFolder(sourceFolderId: string, targetFolderId: string): boolean {
+  // Can't move folder into itself
+  if (sourceFolderId === targetFolderId) {
+    return false;
+  }
+
+  // Can't move system folders
+  if (sourceFolderId === 'my-documents' || sourceFolderId === 'recycle-bin') {
+    return false;
+  }
+
+  // Can only move into system folders or custom folders
+  const isValidTarget = targetFolderId === 'my-documents' ||
+                        targetFolderId === 'recycle-bin' ||
+                        getCustomFolders().some(f => f.id === targetFolderId);
+
+  if (!isValidTarget) {
+    return false;
+  }
+
+  const folders = getCustomFolders();
+  const folder = folders.find(f => f.id === sourceFolderId);
+
+  if (!folder) return false;
+
+  // Update parent ID
+  folder.parentId = targetFolderId;
+  saveFolders(folders);
+
+  // Remove icon from desktop (visually)
+  const iconEl = document.querySelector(`.desktop-icon[data-window-id="${sourceFolderId}"]`);
+  if (iconEl) {
+    iconEl.remove();
+  }
+
+  // Update target folder's window to show the moved folder
+  updateFolderContents(targetFolderId);
+
+  return true;
+}
+
+/**
+ * Update folder contents display
+ */
+function updateFolderContents(folderId: string): void {
+  const windowEl = document.querySelector(`.window[data-window-id="${folderId}"]`);
+  if (!windowEl) return;
+
+  const folderItems = windowEl.querySelector('.folder-items');
+  if (!folderItems) return;
+
+  // Get subfolders
+  const allFolders = getCustomFolders();
+  const subfolders = allFolders.filter(f => f.parentId === folderId);
+
+  if (subfolders.length === 0) {
+    folderItems.innerHTML = `
+      <div class="empty-folder-message">
+        <p>Ten folder jest pusty.</p>
+      </div>
+    `;
+  } else {
+    folderItems.innerHTML = subfolders.map(folder => `
+      <div class="folder-grid-item" data-folder-id="${folder.id}">
+        <div class="folder-grid-icon">${folder.icon}</div>
+        <div class="folder-grid-label">${folder.label}</div>
+      </div>
+    `).join('');
+  }
 }
 
 /**

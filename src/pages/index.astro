@@ -119,6 +119,19 @@ import ContextMenu from '../components/ContextMenu.astro';
 				padding: 1px 2px;
 			}
 
+			/* Drop target highlight when dragging folder over folder */
+			:global(.desktop-icon.drop-target) {
+				background: rgba(76, 175, 80, 0.3);
+				border: 2px dashed #4CAF50;
+				box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+			}
+
+			:global(.desktop-icon.drop-target .icon-label) {
+				background: #4CAF50;
+				color: white;
+				padding: 1px 2px;
+			}
+
 			/* Folder view styles */
 			:global(.folder-view) {
 				display: flex;
@@ -227,6 +240,10 @@ import ContextMenu from '../components/ContextMenu.astro';
 				background: white;
 				padding: 16px;
 				overflow-y: auto;
+				display: flex;
+				flex-wrap: wrap;
+				align-content: flex-start;
+				gap: 8px;
 			}
 
 			:global(.empty-folder-message) {
@@ -237,6 +254,35 @@ import ContextMenu from '../components/ContextMenu.astro';
 
 			:global(.empty-folder-message p) {
 				font-size: 12px;
+			}
+
+			/* Folder grid items (subfolders within a folder) */
+			:global(.folder-grid-item) {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				width: 80px;
+				padding: 8px;
+				cursor: pointer;
+				border: 1px solid transparent;
+				border-radius: 3px;
+			}
+
+			:global(.folder-grid-item:hover) {
+				background: rgba(51, 153, 255, 0.1);
+				border: 1px solid rgba(51, 153, 255, 0.3);
+			}
+
+			:global(.folder-grid-icon) {
+				font-size: 48px;
+				margin-bottom: 4px;
+			}
+
+			:global(.folder-grid-label) {
+				font-size: 11px;
+				text-align: center;
+				word-wrap: break-word;
+				max-width: 100%;
 			}
 
 			/* Mobile optimization for folder view */

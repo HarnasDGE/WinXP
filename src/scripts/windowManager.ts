@@ -4,6 +4,7 @@
  */
 
 import { wasContextMenuJustShown } from './contextMenuManager';
+import { moveFolder } from './folderManager';
 
 let highestZIndex = 200;
 let activeWindow: HTMLElement | null = null;
@@ -33,6 +34,9 @@ let dragStartTime = 0;
 let dragStartX = 0;
 let dragStartY = 0;
 const DRAG_THRESHOLD = 5; // pixels to move before starting drag
+
+// Drop target for folder-into-folder
+let dropTargetIcon: HTMLElement | null = null;
 
 // Double-tap detection for mobile
 let lastTapTime = 0;
@@ -321,6 +325,41 @@ function handleMove(e: MouseEvent | TouchEvent): void {
     currentIcon.style.position = 'absolute';
     currentIcon.style.left = `${newX}px`;
     currentIcon.style.top = `${newY}px`;
+
+    // Check if hovering over another icon (for folder-into-folder)
+    const allIcons = document.querySelectorAll('.desktop-icon');
+    let foundTarget = false;
+
+    allIcons.forEach((icon) => {
+      if (icon === currentIcon) return; // Skip self
+
+      const iconRect = icon.getBoundingClientRect();
+      if (
+        clientX >= iconRect.left &&
+        clientX <= iconRect.right &&
+        clientY >= iconRect.top &&
+        clientY <= iconRect.bottom
+      ) {
+        // Hovering over this icon
+        if (dropTargetIcon !== icon) {
+          // Remove highlight from previous target
+          if (dropTargetIcon) {
+            dropTargetIcon.classList.remove('drop-target');
+          }
+          // Add highlight to new target
+          dropTargetIcon = icon as HTMLElement;
+          dropTargetIcon.classList.add('drop-target');
+        }
+        foundTarget = true;
+      }
+    });
+
+    // If not hovering over any icon, remove highlight
+    if (!foundTarget && dropTargetIcon) {
+      dropTargetIcon.classList.remove('drop-target');
+      dropTargetIcon = null;
+    }
+
     return;
   }
 
@@ -375,6 +414,23 @@ function handleMove(e: MouseEvent | TouchEvent): void {
  * Handle mouse/touch up to stop dragging and resizing
  */
 function handleEnd(): void {
+  // Handle folder drop into another folder
+  if (isDraggingIcon && currentIcon && dropTargetIcon) {
+    const sourceFolderId = currentIcon.dataset.windowId;
+    const targetFolderId = dropTargetIcon.dataset.windowId;
+
+    if (sourceFolderId && targetFolderId) {
+      const success = moveFolder(sourceFolderId, targetFolderId);
+      if (success) {
+        console.log(`Moved folder ${sourceFolderId} into ${targetFolderId}`);
+      }
+    }
+
+    // Remove drop target highlight
+    dropTargetIcon.classList.remove('drop-target');
+    dropTargetIcon = null;
+  }
+
   isDragging = false;
   isResizing = false;
   isDraggingIcon = false;
