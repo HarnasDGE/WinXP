@@ -3,6 +3,8 @@ import OrientationGuard from '../components/OrientationGuard.astro';
 import Desktop from '../components/Desktop.astro';
 import TaskBar from '../components/TaskBar.astro';
 import StartMenu from '../components/StartMenu.astro';
+import DesktopIcon from '../components/DesktopIcon.astro';
+import Window from '../components/Window.astro';
 ---
 
 <html lang="en">
@@ -25,14 +27,46 @@ import StartMenu from '../components/StartMenu.astro';
 				width: 100vw;
 				height: 100vh;
 			}
+
+			.desktop-icons {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+				padding: 8px;
+				position: absolute;
+				top: 0;
+				left: 0;
+			}
 		</style>
 	</head>
 	<body>
 		<OrientationGuard />
 		<Desktop>
-			<!-- Desktop icons will go here -->
+			<div class="desktop-icons">
+				<DesktopIcon icon="📁" label="Moje Dokumenty" windowId="my-documents" />
+				<DesktopIcon icon="🗑️" label="Kosz" windowId="recycle-bin" />
+			</div>
 		</Desktop>
+
+		<!-- Windows -->
+		<Window id="my-documents" title="Moje Dokumenty" icon="📁" defaultX={100} defaultY={80} width={500} height={400}>
+			<p>Folder Moje Dokumenty jest pusty.</p>
+		</Window>
+
+		<Window id="recycle-bin" title="Kosz" icon="🗑️" defaultX={150} defaultY={120} width={500} height={400}>
+			<p>Kosz jest pusty.</p>
+		</Window>
+
 		<TaskBar />
 		<StartMenu />
+
+		<script>
+			import { initWindowManager } from '../scripts/windowManager';
+
+			// Initialize window manager when DOM is ready
+			document.addEventListener('DOMContentLoaded', () => {
+				initWindowManager();
+			});
+		</script>
 	</body>
 </html>

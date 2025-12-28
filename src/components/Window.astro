@@ -1,0 +1,224 @@
+---
+/**
+ * Window Component
+ * Windows XP style window with title bar and content area
+ */
+interface Props {
+  id: string;
+  title: string;
+  icon?: string;
+  defaultX?: number;
+  defaultY?: number;
+  width?: number;
+  height?: number;
+}
+
+const {
+  id,
+  title,
+  icon = '📁',
+  defaultX = 50,
+  defaultY = 50,
+  width = 400,
+  height = 300
+} = Astro.props;
+---
+
+<div
+  class="window"
+  id={`window-${id}`}
+  data-window-id={id}
+  style={`left: ${defaultX}px; top: ${defaultY}px; width: ${width}px; height: ${height}px; display: none;`}
+>
+  <div class="window-titlebar">
+    <div class="titlebar-left">
+      <span class="window-icon">{icon}</span>
+      <span class="window-title">{title}</span>
+    </div>
+    <div class="titlebar-buttons">
+      <button class="titlebar-button minimize" aria-label="Minimize">
+        <span class="button-icon">_</span>
+      </button>
+      <button class="titlebar-button maximize" aria-label="Maximize">
+        <span class="button-icon">□</span>
+      </button>
+      <button class="titlebar-button close" aria-label="Close">
+        <span class="button-icon">×</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="window-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .window {
+    position: fixed;
+    background: white;
+    border: 1px solid #0831D9;
+    border-radius: 8px 8px 0 0;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.5),
+      2px 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    min-height: 150px;
+  }
+
+  .window.active {
+    z-index: 200;
+  }
+
+  .window-titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 30px;
+    background: linear-gradient(180deg,
+      #0997FF 0%,
+      #0053EE 8%,
+      #0050EE 90%,
+      #0042DD 100%
+    );
+    border-radius: 7px 7px 0 0;
+    padding: 0 4px 0 8px;
+    cursor: move;
+    user-select: none;
+  }
+
+  .window.inactive .window-titlebar {
+    background: linear-gradient(180deg,
+      #7A96DF 0%,
+      #5376C6 50%,
+      #3A5A9E 100%
+    );
+  }
+
+  .titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .window-icon {
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .window-title {
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .titlebar-buttons {
+    display: flex;
+    gap: 2px;
+  }
+
+  .titlebar-button {
+    width: 21px;
+    height: 21px;
+    border: none;
+    border-radius: 3px;
+    background: linear-gradient(180deg,
+      #EBF3FF 0%,
+      #D6E7FF 45%,
+      #BCD4FF 50%,
+      #B6CFFE 100%
+    );
+    border: 1px solid #0831D9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .titlebar-button:hover {
+    background: linear-gradient(180deg,
+      #FFF5E5 0%,
+      #FFEBC0 45%,
+      #FFE3A8 50%,
+      #FFE099 100%
+    );
+  }
+
+  .titlebar-button:active {
+    background: linear-gradient(180deg,
+      #B6CFFE 0%,
+      #BCD4FF 50%,
+      #D6E7FF 55%,
+      #EBF3FF 100%
+    );
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .titlebar-button.close {
+    background: linear-gradient(180deg,
+      #FF9B9B 0%,
+      #FF7373 45%,
+      #FF5E5E 50%,
+      #FF4949 100%
+    );
+  }
+
+  .titlebar-button.close:hover {
+    background: linear-gradient(180deg,
+      #FFB5B5 0%,
+      #FF9090 45%,
+      #FF7B7B 50%,
+      #FF6666 100%
+    );
+  }
+
+  .button-icon {
+    display: block;
+    line-height: 1;
+  }
+
+  .minimize .button-icon {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+
+  .maximize .button-icon {
+    font-size: 16px;
+  }
+
+  .close .button-icon {
+    font-size: 18px;
+    margin-top: -2px;
+  }
+
+  .window-content {
+    flex: 1;
+    background: white;
+    overflow: auto;
+    padding: 8px;
+  }
+
+  /* Mobile optimization */
+  @media (max-width: 768px) {
+    .window {
+      width: calc(100vw - 20px) !important;
+      height: calc(100vh - 60px) !important;
+      left: 10px !important;
+      top: 10px !important;
+    }
+  }
+</style>
