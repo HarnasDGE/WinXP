@@ -235,6 +235,12 @@ function setActiveWindow(window: HTMLElement): void {
  */
 function initDragging(window: HTMLElement, titlebar: HTMLElement): void {
   const startDrag = (e: MouseEvent | TouchEvent) => {
+    // Don't start drag if clicking a button
+    const target = e.target as HTMLElement;
+    if (target.closest('.titlebar-button')) {
+      return;
+    }
+
     e.preventDefault();
 
     setActiveWindow(window);
