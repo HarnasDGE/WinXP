@@ -371,6 +371,71 @@ function initResizing(window: HTMLElement): void {
 }
 
 /**
+ * Initialize a single window
+ */
+export function initWindow(window: HTMLElement): void {
+  const titlebar = window.querySelector('.window-titlebar') as HTMLElement;
+  const windowId = window.dataset.windowId;
+
+  if (titlebar) {
+    initDragging(window, titlebar);
+  }
+
+  // Setup resizing
+  initResizing(window);
+
+  // Setup close button
+  const closeBtn = window.querySelector('.titlebar-button.close');
+  if (closeBtn && windowId) {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeWindow(windowId);
+    });
+  }
+
+  // Setup minimize button
+  const minimizeBtn = window.querySelector('.titlebar-button.minimize');
+  if (minimizeBtn && windowId) {
+    minimizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      minimizeWindow(windowId);
+    });
+  }
+
+  // Setup maximize button
+  const maximizeBtn = window.querySelector('.titlebar-button.maximize');
+  if (maximizeBtn && windowId) {
+    maximizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      maximizeWindow(windowId);
+    });
+  }
+
+  // Focus window on click
+  window.addEventListener('mousedown', () => {
+    setActiveWindow(window);
+  });
+}
+
+/**
+ * Initialize a single desktop icon
+ */
+export function initIcon(icon: HTMLElement): void {
+  const windowId = icon.dataset.windowId;
+
+  if (windowId) {
+    icon.addEventListener('dblclick', () => {
+      openWindow(windowId);
+    });
+
+    // Mobile - single tap
+    icon.addEventListener('click', () => {
+      openWindow(windowId);
+    });
+  }
+}
+
+/**
  * Initialize window manager
  */
 export function initWindowManager(): void {
@@ -382,64 +447,24 @@ export function initWindowManager(): void {
 
   // Setup all windows
   document.querySelectorAll('.window').forEach((windowEl) => {
-    const window = windowEl as HTMLElement;
-    const titlebar = window.querySelector('.window-titlebar') as HTMLElement;
-    const windowId = window.dataset.windowId;
-
-    if (titlebar) {
-      initDragging(window, titlebar);
-    }
-
-    // Setup resizing
-    initResizing(window);
-
-    // Setup close button
-    const closeBtn = window.querySelector('.titlebar-button.close');
-    if (closeBtn && windowId) {
-      closeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeWindow(windowId);
-      });
-    }
-
-    // Setup minimize button
-    const minimizeBtn = window.querySelector('.titlebar-button.minimize');
-    if (minimizeBtn && windowId) {
-      minimizeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        minimizeWindow(windowId);
-      });
-    }
-
-    // Setup maximize button
-    const maximizeBtn = window.querySelector('.titlebar-button.maximize');
-    if (maximizeBtn && windowId) {
-      maximizeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        maximizeWindow(windowId);
-      });
-    }
-
-    // Focus window on click
-    window.addEventListener('mousedown', () => {
-      setActiveWindow(window);
-    });
+    initWindow(windowEl as HTMLElement);
   });
 
   // Setup desktop icons
   document.querySelectorAll('.desktop-icon').forEach((iconEl) => {
-    const icon = iconEl as HTMLElement;
-    const windowId = icon.dataset.windowId;
+    initIcon(iconEl as HTMLElement);
+  });
 
-    if (windowId) {
-      icon.addEventListener('dblclick', () => {
-        openWindow(windowId);
-      });
+  // Listen for folder-created event
+  document.addEventListener('folder-created', (e) => {
+    const event = e as CustomEvent;
+    const folderId = event.detail.id;
 
-      // Mobile - single tap
-      icon.addEventListener('click', () => {
-        openWindow(windowId);
-      });
-    }
+    // Initialize the new window and icon
+    const window = document.querySelector(`.window[data-window-id="${folderId}"]`) as HTMLElement;
+    const icon = document.querySelector(`.desktop-icon[data-window-id="${folderId}"]`) as HTMLElement;
+
+    if (window) initWindow(window);
+    if (icon) initIcon(icon);
   });
 }

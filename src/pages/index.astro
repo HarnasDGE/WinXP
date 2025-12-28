@@ -65,9 +65,11 @@ import ContextMenu from '../components/ContextMenu.astro';
 		<script>
 			import { initWindowManager } from '../scripts/windowManager';
 			import { initContextMenuManager } from '../scripts/contextMenuManager';
+			import { initFolderManager } from '../scripts/folderManager';
 
 			// Initialize managers when DOM is ready
 			document.addEventListener('DOMContentLoaded', () => {
+				initFolderManager();
 				initWindowManager();
 				initContextMenuManager();
 			});

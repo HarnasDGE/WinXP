@@ -5,7 +5,13 @@
  */
 ---
 
+<!-- Desktop context menu -->
 <div id="context-menu" class="context-menu" style="display: none;">
+  <div class="menu-item" data-action="new-folder">
+    <span class="menu-icon">📁</span>
+    <span class="menu-label">Nowy Folder</span>
+  </div>
+  <div class="menu-separator"></div>
   <div class="menu-item" data-action="refresh">
     <span class="menu-icon">🔄</span>
     <span class="menu-label">Odśwież</span>
@@ -14,6 +20,23 @@
   <div class="menu-item" data-action="settings">
     <span class="menu-icon">⚙️</span>
     <span class="menu-label">Ustawienia</span>
+  </div>
+</div>
+
+<!-- Icon context menu -->
+<div id="icon-context-menu" class="context-menu" style="display: none;" data-target-id="">
+  <div class="menu-item" data-action="open">
+    <span class="menu-icon">📂</span>
+    <span class="menu-label">Otwórz</span>
+  </div>
+  <div class="menu-separator"></div>
+  <div class="menu-item" data-action="rename">
+    <span class="menu-icon">✏️</span>
+    <span class="menu-label">Zmień nazwę</span>
+  </div>
+  <div class="menu-item" data-action="delete">
+    <span class="menu-icon">🗑️</span>
+    <span class="menu-label">Usuń</span>
   </div>
 </div>
 
