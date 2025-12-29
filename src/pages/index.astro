@@ -499,6 +499,7 @@ import Paint from '../components/Paint.astro';
 		<OrientationGuard />
 		<Desktop>
 			<div class="desktop-icons">
+				<DesktopIcon icon="💻" label="Mój komputer" windowId="my-computer" />
 				<DesktopIcon icon="📁" label="Moje Dokumenty" windowId="my-documents" />
 				<DesktopIcon icon="🗑️" label="Kosz" windowId="recycle-bin" />
 				<DesktopIcon icon="💣" label="Saper" windowId="minesweeper" />
@@ -508,6 +509,47 @@ import Paint from '../components/Paint.astro';
 		</Desktop>
 
 		<!-- Windows -->
+		<Window id="my-computer" title="Mój komputer" icon="💻" defaultX={50} defaultY={50} width={600} height={450}>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" title="Do przodu">➡️</button>
+						<button class="toolbar-button" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="Mój komputer" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Szczegóły systemu</div>
+							<div class="sidebar-content" style="font-size: 11px; color: #003d79; padding: 4px 8px;">
+								<p>Windows XP</p>
+								<p>Symulator</p>
+							</div>
+						</div>
+					</div>
+					<div class="folder-items">
+						<div class="drives-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; padding: 16px;">
+							<!-- Drive C: -->
+							<div class="drive-item" data-drive="c" style="display: flex; flex-direction: column; align-items: center; padding: 12px; cursor: pointer; border: 1px solid transparent; border-radius: 4px;">
+								<div style="font-size: 64px; margin-bottom: 8px;">💾</div>
+								<div style="font-size: 12px; font-weight: bold; text-align: center;">Dysk lokalny (C:)</div>
+							</div>
+							<!-- Drive D: -->
+							<div class="drive-item" data-drive="d" style="display: flex; flex-direction: column; align-items: center; padding: 12px; cursor: pointer; border: 1px solid transparent; border-radius: 4px;">
+								<div style="font-size: 64px; margin-bottom: 8px;">💿</div>
+								<div style="font-size: 12px; font-weight: bold; text-align: center;">Dysk lokalny (D:)</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Window>
+
 		<Window id="my-documents" title="Moje Dokumenty" icon="📁" defaultX={100} defaultY={80} width={500} height={400}>
 			<div class="folder-view">
 				<div class="folder-toolbar">
@@ -567,11 +609,40 @@ import Paint from '../components/Paint.astro';
 			import { initContextMenuManager } from '../scripts/contextMenuManager';
 			import { initFolderManager } from '../scripts/folderManager';
 
+			// Initialize drive interactions
+			function initDriveItems(): void {
+				const driveItems = document.querySelectorAll('.drive-item');
+
+				driveItems.forEach(drive => {
+					const driveEl = drive as HTMLElement;
+
+					// Hover effects
+					driveEl.addEventListener('mouseenter', () => {
+						driveEl.style.background = 'rgba(51, 153, 255, 0.1)';
+						driveEl.style.borderColor = 'rgba(51, 153, 255, 0.3)';
+					});
+
+					driveEl.addEventListener('mouseleave', () => {
+						driveEl.style.background = 'transparent';
+						driveEl.style.borderColor = 'transparent';
+					});
+
+					// Double-click to open drive
+					driveEl.addEventListener('dblclick', () => {
+						const driveLetter = driveEl.dataset.drive;
+						console.log(`Opening drive ${driveLetter?.toUpperCase()}:`);
+						// TODO: Implement drive window opening
+						alert(`Dysk ${driveLetter?.toUpperCase()}: - będzie dostępny w przyszłej wersji!`);
+					});
+				});
+			}
+
 			// Initialize managers when DOM is ready
 			document.addEventListener('DOMContentLoaded', () => {
 				initFolderManager();
 				initWindowManager();
 				initContextMenuManager();
+				initDriveItems();
 			});
 		</script>
 	</body>
