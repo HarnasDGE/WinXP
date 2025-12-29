@@ -550,6 +550,64 @@ import Paint from '../components/Paint.astro';
 			</div>
 		</Window>
 
+		<Window id="drive-c" title="Dysk lokalny (C:)" icon="💾" defaultX={120} defaultY={100} width={600} height={450}>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" data-nav="back" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" data-nav="forward" title="Do przodu">➡️</button>
+						<button class="toolbar-button" data-nav="up" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="C:\" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Zadania folderów</div>
+							<a href="#" class="sidebar-link">Utwórz nowy folder</a>
+						</div>
+					</div>
+					<div class="folder-items" data-drive-content="c">
+						<div class="empty-folder-message">
+							<p>Dysk C: jest pusty.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Window>
+
+		<Window id="drive-d" title="Dysk lokalny (D:)" icon="💿" defaultX={170} defaultY={130} width={600} height={450}>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" data-nav="back" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" data-nav="forward" title="Do przodu">➡️</button>
+						<button class="toolbar-button" data-nav="up" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="D:\" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Zadania folderów</div>
+							<a href="#" class="sidebar-link">Utwórz nowy folder</a>
+						</div>
+					</div>
+					<div class="folder-items" data-drive-content="d">
+						<div class="empty-folder-message">
+							<p>Dysk D: jest pusty.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Window>
+
 		<Window id="my-documents" title="Moje Dokumenty" icon="📁" defaultX={100} defaultY={80} width={500} height={400}>
 			<div class="folder-view">
 				<div class="folder-toolbar">
@@ -628,11 +686,12 @@ import Paint from '../components/Paint.astro';
 					});
 
 					// Double-click to open drive
-					driveEl.addEventListener('dblclick', () => {
+					driveEl.addEventListener('dblclick', async () => {
 						const driveLetter = driveEl.dataset.drive;
-						console.log(`Opening drive ${driveLetter?.toUpperCase()}:`);
-						// TODO: Implement drive window opening
-						alert(`Dysk ${driveLetter?.toUpperCase()}: - będzie dostępny w przyszłej wersji!`);
+						if (driveLetter) {
+							const { openWindow } = await import('./scripts/windowManager');
+							openWindow(`drive-${driveLetter}`);
+						}
 					});
 				});
 			}
