@@ -1,0 +1,153 @@
+---
+/**
+ * StartButton Component
+ * Windows XP Start button with Windows logo - Authentic XP style
+ */
+---
+
+<button id="start-button" class="start-button" type="button">
+  <svg class="windows-logo" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Windows XP flag logo -->
+    <defs>
+      <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#f45a4d;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#c72e1f;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#9ed863;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#6ab43e;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#5eadef;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#2b7cd3;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="yellowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#ffd45c;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#ffb732;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+
+    <!-- Red panel (top-left) -->
+    <path d="M 0,0 L 0,8.5 L 7.5,8.5 L 8.5,7.5 L 8.5,0.5 L 0.5,0 Z" fill="url(#redGrad)"/>
+
+    <!-- Green panel (top-right) -->
+    <path d="M 10,0.5 L 10,8.5 L 20,8.5 L 20,2 L 10.5,0.5 Z" fill="url(#greenGrad)"/>
+
+    <!-- Blue panel (bottom-left) -->
+    <path d="M 0,10 L 0,20 L 0.5,20 L 8.5,19.5 L 8.5,11 L 7.5,10 Z" fill="url(#blueGrad)"/>
+
+    <!-- Yellow panel (bottom-right) -->
+    <path d="M 10,10 L 10,19.5 L 10.5,19.5 L 20,18 L 20,10 Z" fill="url(#yellowGrad)"/>
+  </svg>
+  <span class="start-text">start</span>
+</button>
+
+<script>
+  const startButton = document.getElementById('start-button');
+
+  if (startButton) {
+    startButton.addEventListener('click', () => {
+      // Dispatch custom event that StartMenu will listen to
+      const event = new CustomEvent('toggle-start-menu');
+      window.dispatchEvent(event);
+    });
+  }
+</script>
+
+<style>
+  .start-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+    height: 100%;
+    padding: 0 24px 0 4px;
+    border: none;
+    border-radius: 0 18px 18px 0;
+    /* Authentic Windows XP Start button gradient */
+    background: linear-gradient(180deg,
+      #73d343 0%,
+      #5cb32c 25%,
+      #4ba028 50%,
+      #3a8c22 75%,
+      #2d741c 100%
+    );
+    border-top: 1px solid rgba(255, 255, 255, 0.7);
+    border-right: 1px solid #1a5e14;
+    border-bottom: 1px solid #164d11;
+    box-shadow:
+      inset 2px 2px 3px rgba(255, 255, 255, 0.3),
+      inset -1px -1px 2px rgba(0, 0, 0, 0.2),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    font-family: 'Tahoma', 'Franklin Gothic Medium', sans-serif;
+    margin: 3px 0 3px 3px;
+    transition: all 0.05s ease;
+  }
+
+  .start-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0 18px 18px 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  .start-button:hover {
+    background: linear-gradient(180deg,
+      #81e151 0%,
+      #6ac13a 25%,
+      #59ae36 50%,
+      #489a30 75%,
+      #3b8228 100%
+    );
+    box-shadow:
+      inset 2px 2px 3px rgba(255, 255, 255, 0.4),
+      inset -1px -1px 2px rgba(0, 0, 0, 0.2),
+      2px 2px 5px rgba(0, 0, 0, 0.4);
+  }
+
+  .start-button:active,
+  .start-button.active {
+    background: linear-gradient(180deg,
+      #2d741c 0%,
+      #3a8c22 25%,
+      #4ba028 50%,
+      #5cb32c 75%,
+      #73d343 100%
+    );
+    box-shadow:
+      inset 1px 1px 3px rgba(0, 0, 0, 0.5),
+      inset -1px -1px 1px rgba(0, 0, 0, 0.3);
+    border-top-color: #164d11;
+    border-right-color: rgba(255, 255, 255, 0.5);
+    border-bottom-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .windows-logo {
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7));
+    flex-shrink: 0;
+    margin-left: 2px;
+  }
+
+  .start-text {
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: bold;
+    font-style: italic;
+    text-shadow:
+      1px 1px 2px rgba(0, 0, 0, 0.9),
+      0 0 1px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.3px;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+</style>

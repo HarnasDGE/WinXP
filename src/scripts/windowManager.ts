@@ -1,0 +1,760 @@
+/**
+ * Window Manager
+ * Handles window opening, closing, dragging, and focus management
+ */
+
+import { wasContextMenuJustShown } from './contextMenuManager';
+import { moveFolder } from './folderManager';
+
+let highestZIndex = 200;
+let activeWindow: HTMLElement | null = null;
+
+// Dragging state
+let isDragging = false;
+let currentWindow: HTMLElement | null = null;
+let offsetX = 0;
+let offsetY = 0;
+
+// Resizing state
+let isResizing = false;
+let resizeDirection: string | null = null;
+let resizeStartX = 0;
+let resizeStartY = 0;
+let resizeStartWidth = 0;
+let resizeStartHeight = 0;
+let resizeStartLeft = 0;
+let resizeStartTop = 0;
+
+// Icon dragging state
+let isDraggingIcon = false;
+let currentIcon: HTMLElement | null = null;
+let iconOffsetX = 0;
+let iconOffsetY = 0;
+let dragStartTime = 0;
+let dragStartX = 0;
+let dragStartY = 0;
+const DRAG_THRESHOLD = 5; // pixels to move before starting drag
+
+// Grid snapping for icons
+const GRID_SIZE_X = 80; // horizontal spacing
+const GRID_SIZE_Y = 88; // vertical spacing (slightly taller for label)
+
+// Drop target for folder-into-folder
+let dropTargetIcon: HTMLElement | null = null;
+
+// Double-tap detection for mobile
+let lastTapTime = 0;
+let lastTapIconId: string | null = null;
+const DOUBLE_TAP_DELAY = 300; // milliseconds
+
+// Window states
+interface WindowState {
+  state: 'normal' | 'minimized' | 'maximized';
+  savedPosition?: { left: string; top: string; width: string; height: string };
+}
+
+const windowStates = new Map<string, WindowState>();
+
+/**
+ * Snaps coordinates to grid
+ */
+function snapToGrid(x: number, y: number): { x: number; y: number } {
+  return {
+    x: Math.round(x / GRID_SIZE_X) * GRID_SIZE_X,
+    y: Math.round(y / GRID_SIZE_Y) * GRID_SIZE_Y
+  };
+}
+
+/**
+ * Saves icon position to localStorage for custom folders
+ */
+async function saveIconPosition(iconId: string, x: number, y: number): Promise<void> {
+  // Skip system folders
+  if (iconId === 'my-documents' || iconId === 'recycle-bin') return;
+
+  try {
+    const { getCustomFolders } = await import('./folderManager');
+    const folders = getCustomFolders();
+    const folder = folders.find(f => f.id === iconId);
+
+    if (folder) {
+      folder.x = x;
+      folder.y = y;
+      localStorage.setItem('winxp-folders', JSON.stringify(folders));
+    }
+  } catch (e) {
+    console.error('Failed to save icon position:', e);
+  }
+}
+
+/**
+ * Creates taskbar button for a window
+ */
+function createTaskbarButton(windowId: string, title: string, icon: string): HTMLElement {
+  const button = document.createElement('button');
+  button.className = 'taskbar-window-button';
+  button.dataset.windowId = windowId;
+  button.innerHTML = `
+    <span class="taskbar-window-icon">${icon}</span>
+    <span class="taskbar-window-title">${title}</span>
+  `;
+
+  // Click to restore/minimize
+  button.addEventListener('click', () => {
+    const window = document.getElementById(`window-${windowId}`);
+    if (!window) return;
+
+    const state = windowStates.get(windowId);
+    if (state?.state === 'minimized') {
+      restoreWindow(windowId);
+    } else if (activeWindow === window) {
+      minimizeWindow(windowId);
+    } else {
+      setActiveWindow(window);
+      bringToFront(window);
+    }
+  });
+
+  return button;
+}
+
+/**
+ * Opens a window by ID
+ */
+export function openWindow(windowId: string): void {
+  const window = document.getElementById(`window-${windowId}`);
+  if (!window) return;
+
+  // Check if already open
+  const existingButton = document.querySelector(`[data-window-id="${windowId}"].taskbar-window-button`);
+  if (existingButton) {
+    // Just restore if minimized
+    const state = windowStates.get(windowId);
+    if (state?.state === 'minimized') {
+      restoreWindow(windowId);
+    } else {
+      setActiveWindow(window);
+      bringToFront(window);
+    }
+    return;
+  }
+
+  // Show window
+  window.style.display = 'flex';
+  windowStates.set(windowId, { state: 'normal' });
+
+  // Add taskbar button
+  const title = window.querySelector('.window-title')?.textContent || 'Window';
+  const icon = window.querySelector('.window-icon')?.textContent || '📁';
+  const taskbarCenter = document.querySelector('.taskbar-center');
+  if (taskbarCenter) {
+    const button = createTaskbarButton(windowId, title, icon);
+    taskbarCenter.appendChild(button);
+    button.classList.add('active');
+  }
+
+  // Bring to front and activate
+  bringToFront(window);
+  setActiveWindow(window);
+}
+
+/**
+ * Closes a window by ID
+ */
+export function closeWindow(windowId: string): void {
+  const window = document.getElementById(`window-${windowId}`);
+  if (!window) return;
+
+  window.style.display = 'none';
+  windowStates.delete(windowId);
+
+  // Remove taskbar button
+  const button = document.querySelector(`[data-window-id="${windowId}"].taskbar-window-button`);
+  if (button) {
+    button.remove();
+  }
+
+  // If this was the active window, clear active state
+  if (activeWindow === window) {
+    activeWindow = null;
+  }
+}
+
+/**
+ * Minimizes a window
+ */
+export function minimizeWindow(windowId: string): void {
+  const window = document.getElementById(`window-${windowId}`);
+  if (!window) return;
+
+  window.style.display = 'none';
+  windowStates.set(windowId, { state: 'minimized' });
+
+  // Update taskbar button
+  const button = document.querySelector(`[data-window-id="${windowId}"].taskbar-window-button`);
+  if (button) {
+    button.classList.remove('active');
+  }
+
+  if (activeWindow === window) {
+    activeWindow = null;
+  }
+}
+
+/**
+ * Maximizes a window
+ */
+export function maximizeWindow(windowId: string): void {
+  const window = document.getElementById(`window-${windowId}`);
+  if (!window) return;
+
+  const state = windowStates.get(windowId);
+
+  // If already maximized, restore
+  if (state?.state === 'maximized' && state.savedPosition) {
+    window.style.left = state.savedPosition.left;
+    window.style.top = state.savedPosition.top;
+    window.style.width = state.savedPosition.width;
+    window.style.height = state.savedPosition.height;
+    windowStates.set(windowId, { state: 'normal' });
+    return;
+  }
+
+  // Save current position
+  windowStates.set(windowId, {
+    state: 'maximized',
+    savedPosition: {
+      left: window.style.left,
+      top: window.style.top,
+      width: window.style.width,
+      height: window.style.height
+    }
+  });
+
+  // Maximize (account for taskbar)
+  window.style.left = '0px';
+  window.style.top = '0px';
+  window.style.width = '100vw';
+  window.style.height = 'calc(100vh - 30px)';
+}
+
+/**
+ * Restores a minimized window
+ */
+export function restoreWindow(windowId: string): void {
+  const window = document.getElementById(`window-${windowId}`);
+  if (!window) return;
+
+  window.style.display = 'flex';
+  windowStates.set(windowId, { state: 'normal' });
+
+  // Update taskbar button
+  const button = document.querySelector(`[data-window-id="${windowId}"].taskbar-window-button`);
+  if (button) {
+    button.classList.add('active');
+  }
+
+  bringToFront(window);
+  setActiveWindow(window);
+}
+
+/**
+ * Brings window to front
+ */
+function bringToFront(window: HTMLElement): void {
+  highestZIndex++;
+  window.style.zIndex = highestZIndex.toString();
+}
+
+/**
+ * Sets the active window
+ */
+function setActiveWindow(window: HTMLElement): void {
+  // Remove active class from all windows
+  document.querySelectorAll('.window').forEach((w) => {
+    w.classList.remove('active');
+    w.classList.add('inactive');
+  });
+
+  // Remove active class from all taskbar buttons
+  document.querySelectorAll('.taskbar-window-button').forEach((btn) => {
+    btn.classList.remove('active');
+  });
+
+  // Set active window
+  window.classList.add('active');
+  window.classList.remove('inactive');
+  activeWindow = window;
+  bringToFront(window);
+
+  // Set active taskbar button
+  const windowId = window.dataset.windowId;
+  if (windowId) {
+    const button = document.querySelector(`[data-window-id="${windowId}"].taskbar-window-button`);
+    if (button) {
+      button.classList.add('active');
+    }
+  }
+}
+
+/**
+ * Initialize window dragging
+ */
+function initDragging(window: HTMLElement, titlebar: HTMLElement): void {
+  const startDrag = (e: MouseEvent | TouchEvent) => {
+    // Don't start drag if clicking a button
+    const target = e.target as HTMLElement;
+    if (target.closest('.titlebar-button')) {
+      return;
+    }
+
+    e.preventDefault();
+
+    setActiveWindow(window);
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    const rect = window.getBoundingClientRect();
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+
+    isDragging = true;
+    currentWindow = window;
+  };
+
+  titlebar.addEventListener('mousedown', startDrag);
+  titlebar.addEventListener('touchstart', startDrag, { passive: false });
+}
+
+/**
+ * Handle mouse/touch move for dragging and resizing
+ */
+function handleMove(e: MouseEvent | TouchEvent): void {
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+  // Check if we should start icon dragging
+  if (!isDraggingIcon && currentIcon) {
+    const distX = Math.abs(clientX - dragStartX);
+    const distY = Math.abs(clientY - dragStartY);
+
+    // Only start dragging if mouse moved beyond threshold
+    if (distX > DRAG_THRESHOLD || distY > DRAG_THRESHOLD) {
+      isDraggingIcon = true;
+    }
+  }
+
+  // Handle icon dragging
+  if (isDraggingIcon && currentIcon) {
+    const iconsContainer = document.querySelector('.desktop-icons');
+    if (!iconsContainer) return;
+
+    const containerRect = iconsContainer.getBoundingClientRect();
+    let newX = clientX - iconOffsetX - containerRect.left;
+    let newY = clientY - iconOffsetY - containerRect.top;
+
+    // Keep icon within desktop bounds
+    newX = Math.max(0, Math.min(newX, containerRect.width - 75));
+    newY = Math.max(0, Math.min(newY, containerRect.height - 80));
+
+    currentIcon.style.position = 'absolute';
+    currentIcon.style.left = `${newX}px`;
+    currentIcon.style.top = `${newY}px`;
+
+    // Check if hovering over another icon (for folder-into-folder)
+    const allIcons = document.querySelectorAll('.desktop-icon');
+    let foundTarget = false;
+
+    allIcons.forEach((icon) => {
+      if (icon === currentIcon) return; // Skip self
+
+      const iconRect = icon.getBoundingClientRect();
+      if (
+        clientX >= iconRect.left &&
+        clientX <= iconRect.right &&
+        clientY >= iconRect.top &&
+        clientY <= iconRect.bottom
+      ) {
+        // Hovering over this icon
+        if (dropTargetIcon !== icon) {
+          // Remove highlight from previous target
+          if (dropTargetIcon) {
+            dropTargetIcon.classList.remove('drop-target');
+          }
+          // Add highlight to new target
+          dropTargetIcon = icon as HTMLElement;
+          dropTargetIcon.classList.add('drop-target');
+        }
+        foundTarget = true;
+      }
+    });
+
+    // If not hovering over any icon, remove highlight
+    if (!foundTarget && dropTargetIcon) {
+      dropTargetIcon.classList.remove('drop-target');
+      dropTargetIcon = null;
+    }
+
+    return;
+  }
+
+  // Handle window dragging
+  if (isDragging && currentWindow && !isResizing) {
+    let newX = clientX - offsetX;
+    let newY = clientY - offsetY;
+
+    // Prevent dragging off screen (top only)
+    newY = Math.max(0, newY);
+
+    currentWindow.style.left = `${newX}px`;
+    currentWindow.style.top = `${newY}px`;
+    return;
+  }
+
+  // Handle resizing
+  if (isResizing && currentWindow && resizeDirection) {
+    const deltaX = clientX - resizeStartX;
+    const deltaY = clientY - resizeStartY;
+
+    let newWidth = resizeStartWidth;
+    let newHeight = resizeStartHeight;
+    let newLeft = resizeStartLeft;
+    let newTop = resizeStartTop;
+
+    // Calculate new dimensions based on direction
+    if (resizeDirection.includes('e')) {
+      newWidth = Math.max(200, resizeStartWidth + deltaX);
+    }
+    if (resizeDirection.includes('w')) {
+      newWidth = Math.max(200, resizeStartWidth - deltaX);
+      newLeft = resizeStartLeft + (resizeStartWidth - newWidth);
+    }
+    if (resizeDirection.includes('s')) {
+      newHeight = Math.max(150, resizeStartHeight + deltaY);
+    }
+    if (resizeDirection.includes('n')) {
+      newHeight = Math.max(150, resizeStartHeight - deltaY);
+      newTop = Math.max(0, resizeStartTop + (resizeStartHeight - newHeight));
+    }
+
+    // Apply new dimensions
+    currentWindow.style.width = `${newWidth}px`;
+    currentWindow.style.height = `${newHeight}px`;
+    currentWindow.style.left = `${newLeft}px`;
+    currentWindow.style.top = `${newTop}px`;
+  }
+}
+
+/**
+ * Handle mouse/touch up to stop dragging and resizing
+ */
+function handleEnd(): void {
+  // Handle folder drop into another folder
+  if (isDraggingIcon && currentIcon && dropTargetIcon) {
+    const sourceFolderId = currentIcon.dataset.windowId;
+    const targetFolderId = dropTargetIcon.dataset.windowId;
+
+    if (sourceFolderId && targetFolderId) {
+      const success = moveFolder(sourceFolderId, targetFolderId);
+      if (success) {
+        console.log(`Moved folder ${sourceFolderId} into ${targetFolderId}`);
+      }
+    }
+
+    // Remove drop target highlight
+    dropTargetIcon.classList.remove('drop-target');
+    dropTargetIcon = null;
+  } else if (isDraggingIcon && currentIcon) {
+    // Snap icon to grid when dropped (if not dropped on another folder)
+    const currentX = parseInt(currentIcon.style.left) || 0;
+    const currentY = parseInt(currentIcon.style.top) || 0;
+    const snapped = snapToGrid(currentX, currentY);
+
+    currentIcon.style.left = `${snapped.x}px`;
+    currentIcon.style.top = `${snapped.y}px`;
+
+    // Save position to localStorage
+    const iconId = currentIcon.dataset.windowId;
+    if (iconId) {
+      saveIconPosition(iconId, snapped.x, snapped.y);
+    }
+  }
+
+  isDragging = false;
+  isResizing = false;
+  isDraggingIcon = false;
+  currentWindow = null;
+  currentIcon = null;
+  resizeDirection = null;
+}
+
+/**
+ * Initialize window resizing
+ */
+function initResizing(window: HTMLElement): void {
+  const startResize = (e: MouseEvent | TouchEvent) => {
+    const handle = e.target as HTMLElement;
+    const direction = handle.dataset.direction;
+    if (!direction) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    setActiveWindow(window);
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    const rect = window.getBoundingClientRect();
+
+    resizeDirection = direction;
+    resizeStartX = clientX;
+    resizeStartY = clientY;
+    resizeStartWidth = rect.width;
+    resizeStartHeight = rect.height;
+    resizeStartLeft = rect.left;
+    resizeStartTop = rect.top;
+    isResizing = true;
+    currentWindow = window;
+  };
+
+  window.querySelectorAll('.resize-handle').forEach((handle) => {
+    handle.addEventListener('mousedown', startResize);
+    handle.addEventListener('touchstart', startResize, { passive: false });
+  });
+}
+
+/**
+ * Initialize a single window
+ */
+export function initWindow(window: HTMLElement): void {
+  const titlebar = window.querySelector('.window-titlebar') as HTMLElement;
+  const windowId = window.dataset.windowId;
+
+  if (titlebar) {
+    initDragging(window, titlebar);
+  }
+
+  // Setup resizing
+  initResizing(window);
+
+  // Setup close button
+  const closeBtn = window.querySelector('.titlebar-button.close');
+  if (closeBtn && windowId) {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeWindow(windowId);
+    });
+  }
+
+  // Setup minimize button
+  const minimizeBtn = window.querySelector('.titlebar-button.minimize');
+  if (minimizeBtn && windowId) {
+    minimizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      minimizeWindow(windowId);
+    });
+  }
+
+  // Setup maximize button
+  const maximizeBtn = window.querySelector('.titlebar-button.maximize');
+  if (maximizeBtn && windowId) {
+    maximizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      maximizeWindow(windowId);
+    });
+  }
+
+  // Focus window on click
+  window.addEventListener('mousedown', () => {
+    setActiveWindow(window);
+  });
+}
+
+/**
+ * Start dragging an icon
+ */
+function startIconDrag(e: MouseEvent | TouchEvent, icon: HTMLElement): void {
+  // DON'T preventDefault here - it blocks dblclick!
+  // We'll prevent it later if we actually start dragging
+
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+  const rect = icon.getBoundingClientRect();
+  iconOffsetX = clientX - rect.left;
+  iconOffsetY = clientY - rect.top;
+
+  dragStartTime = Date.now();
+  dragStartX = clientX;
+  dragStartY = clientY;
+  currentIcon = icon;
+
+  // Mark as ready to drag, but don't actually start dragging yet
+  // We'll start dragging in handleMove if the mouse moves significantly
+}
+
+/**
+ * Initialize a single desktop icon
+ */
+export function initIcon(icon: HTMLElement): void {
+  const windowId = icon.dataset.windowId;
+
+  if (windowId) {
+    // Double-click to open (desktop and mobile)
+    icon.addEventListener('dblclick', () => {
+      openWindow(windowId);
+    });
+
+    // Single click to select
+    icon.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      // Don't select if context menu was just shown
+      if (wasContextMenuJustShown()) {
+        e.preventDefault();
+        return;
+      }
+
+      // Don't select if we just finished dragging
+      if (isDraggingIcon) {
+        return;
+      }
+
+      // Remove selection from all other icons
+      document.querySelectorAll('.desktop-icon').forEach(i => {
+        i.classList.remove('selected');
+      });
+
+      // Select this icon
+      icon.classList.add('selected');
+    });
+
+    // Drag to move icon (mouse)
+    icon.addEventListener('mousedown', (e) => startIconDrag(e, icon));
+
+    // Touch handling with double-tap detection
+    icon.addEventListener('touchstart', (e) => {
+      const currentTime = Date.now();
+      const timeSinceLastTap = currentTime - lastTapTime;
+
+      // Check for double-tap (same icon within 300ms)
+      if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0 && lastTapIconId === windowId) {
+        // Double-tap detected - open window
+        e.preventDefault();
+        openWindow(windowId);
+        lastTapTime = 0; // Reset to prevent triple-tap
+        lastTapIconId = null;
+      } else {
+        // Single tap - prepare for potential drag or double-tap
+        lastTapTime = currentTime;
+        lastTapIconId = windowId;
+        startIconDrag(e, icon);
+      }
+    }, { passive: false }); // Not passive so we can preventDefault on double-tap
+
+    // Make droppable (for drag from folder grid items)
+    icon.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+      icon.classList.add('drop-target');
+    });
+
+    icon.addEventListener('dragleave', () => {
+      icon.classList.remove('drop-target');
+    });
+
+    icon.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      icon.classList.remove('drop-target');
+
+      const sourceFolderId = e.dataTransfer?.getData('text/plain');
+      if (sourceFolderId && windowId && sourceFolderId !== windowId) {
+        const { moveFolder } = await import('./folderManager');
+        moveFolder(sourceFolderId, windowId);
+      }
+    });
+  }
+}
+
+/**
+ * Deselect icons when clicking on desktop
+ */
+function initDesktopClick(): void {
+  const desktop = document.querySelector('.desktop');
+  if (desktop) {
+    desktop.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      // Only deselect if clicking on desktop itself, not on icons or windows
+      if (target.classList.contains('desktop') || (target.closest('.desktop') === desktop && !target.closest('.desktop-icon') && !target.closest('.window'))) {
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+          icon.classList.remove('selected');
+        });
+      }
+    });
+  }
+}
+
+/**
+ * Initialize desktop drop handling (for moving folders back to desktop)
+ */
+function initDesktopDrop(): void {
+  const desktopIcons = document.querySelector('.desktop-icons');
+  if (desktopIcons) {
+    desktopIcons.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+    });
+
+    desktopIcons.addEventListener('drop', async (e) => {
+      e.preventDefault();
+
+      const target = e.target as HTMLElement;
+      // Only process if dropped on desktop area, not on an icon
+      if (target.closest('.desktop-icon')) return;
+
+      const sourceFolderId = e.dataTransfer?.getData('text/plain');
+      if (sourceFolderId) {
+        // Calculate drop position
+        const rect = desktopIcons.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const { moveToDesktop } = await import('./folderManager');
+        moveToDesktop(sourceFolderId, x, y);
+      }
+    });
+  }
+}
+
+/**
+ * Initialize window manager
+ */
+export function initWindowManager(): void {
+  // Setup global drag handlers
+  document.addEventListener('mousemove', handleMove);
+  document.addEventListener('touchmove', handleMove, { passive: false });
+  document.addEventListener('mouseup', handleEnd);
+  document.addEventListener('touchend', handleEnd);
+
+  // Setup desktop click to deselect icons
+  initDesktopClick();
+
+  // Setup desktop drop handling
+  initDesktopDrop();
+
+  // Setup all windows
+  document.querySelectorAll('.window').forEach((windowEl) => {
+    initWindow(windowEl as HTMLElement);
+  });
+
+  // Setup desktop icons
+  document.querySelectorAll('.desktop-icon').forEach((iconEl) => {
+    initIcon(iconEl as HTMLElement);
+  });
+}

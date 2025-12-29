@@ -1,0 +1,130 @@
+---
+/**
+ * ContextMenu Component
+ * Windows XP style context menu (right-click menu)
+ */
+---
+
+<!-- Desktop context menu -->
+<div id="context-menu" class="context-menu" style="display: none;">
+  <div class="menu-item" data-action="new-folder">
+    <span class="menu-icon">📁</span>
+    <span class="menu-label">Nowy Folder</span>
+  </div>
+  <div class="menu-separator"></div>
+  <div class="menu-item" data-action="refresh">
+    <span class="menu-icon">🔄</span>
+    <span class="menu-label">Odśwież</span>
+  </div>
+  <div class="menu-separator"></div>
+  <div class="menu-item" data-action="settings">
+    <span class="menu-icon">⚙️</span>
+    <span class="menu-label">Ustawienia</span>
+  </div>
+</div>
+
+<!-- Icon context menu -->
+<div id="icon-context-menu" class="context-menu" style="display: none;" data-target-id="">
+  <div class="menu-item" data-action="open">
+    <span class="menu-icon">📂</span>
+    <span class="menu-label">Otwórz</span>
+  </div>
+  <div class="menu-separator"></div>
+  <div class="menu-item" data-action="rename">
+    <span class="menu-icon">✏️</span>
+    <span class="menu-label">Zmień nazwę</span>
+  </div>
+  <div class="menu-item" data-action="delete">
+    <span class="menu-icon">🗑️</span>
+    <span class="menu-label">Usuń</span>
+  </div>
+</div>
+
+<style>
+  .context-menu {
+    position: fixed;
+    background: #F1F1F1;
+    border: 1px solid #0A246A;
+    box-shadow:
+      2px 2px 5px rgba(0, 0, 0, 0.3),
+      inset 1px 1px 0 rgba(255, 255, 255, 0.8);
+    min-width: 180px;
+    z-index: 10000;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+    padding: 2px;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 24px 4px 8px;
+    cursor: pointer;
+    user-select: none;
+    color: #000;
+    position: relative;
+  }
+
+  .menu-item:hover {
+    background: linear-gradient(to right,
+      #3166EA 0%,
+      #4B91F7 50%,
+      #3166EA 100%
+    );
+    color: white;
+  }
+
+  .menu-item:active {
+    background: linear-gradient(to right,
+      #2551D1 0%,
+      #3A7ADE 50%,
+      #2551D1 100%
+    );
+  }
+
+  .menu-icon {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+  }
+
+  .menu-label {
+    flex: 1;
+  }
+
+  .menu-separator {
+    height: 1px;
+    background: linear-gradient(to right,
+      transparent 0%,
+      #A0A0A0 10%,
+      #A0A0A0 90%,
+      transparent 100%
+    );
+    margin: 2px 4px;
+  }
+
+  /* Mobile optimization */
+  @media (max-width: 768px) {
+    .context-menu {
+      min-width: 200px;
+      font-size: 14px;
+    }
+
+    .menu-item {
+      padding: 12px 24px 12px 12px;
+      gap: 12px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .menu-icon {
+      font-size: 18px;
+      width: 20px;
+    }
+
+    .menu-label {
+      font-size: 14px;
+    }
+  }
+</style>

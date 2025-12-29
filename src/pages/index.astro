@@ -1,5 +1,14 @@
 ---
-
+import OrientationGuard from '../components/OrientationGuard.astro';
+import Desktop from '../components/Desktop.astro';
+import TaskBar from '../components/TaskBar.astro';
+import StartMenu from '../components/StartMenu.astro';
+import DesktopIcon from '../components/DesktopIcon.astro';
+import Window from '../components/Window.astro';
+import ContextMenu from '../components/ContextMenu.astro';
+import Minesweeper from '../components/Minesweeper.astro';
+import Solitaire from '../components/Solitaire.astro';
+import Paint from '../components/Paint.astro';
 ---
 
 <html lang="en">
@@ -8,9 +17,741 @@
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>Windows XP</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: 'Tahoma', 'Microsoft Sans Serif', sans-serif;
+				overflow: hidden;
+				width: 100vw;
+				height: 100vh;
+			}
+
+			.desktop-icons {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
+			}
+
+			/* Global desktop icon styles */
+			:global(.desktop-icon) {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				width: 75px;
+				padding: 4px;
+				cursor: pointer;
+				border: 1px solid transparent;
+				user-select: none;
+				pointer-events: auto;
+				position: absolute;
+			}
+
+			/* Default icon positions (will be overridden by dragging) */
+			:global(.desktop-icon:nth-child(1)) {
+				left: 8px;
+				top: 8px;
+			}
+
+			:global(.desktop-icon:nth-child(2)) {
+				left: 8px;
+				top: 96px;
+			}
+
+			:global(.desktop-icon:nth-child(3)) {
+				left: 8px;
+				top: 184px;
+			}
+
+			:global(.desktop-icon:nth-child(4)) {
+				left: 8px;
+				top: 272px;
+			}
+
+			:global(.desktop-icon:hover) {
+				background: rgba(255, 255, 255, 0.1);
+				border: 1px solid rgba(255, 255, 255, 0.3);
+			}
+
+			:global(.desktop-icon:active) {
+				background: rgba(51, 153, 255, 0.3);
+				border: 1px solid rgba(51, 153, 255, 0.5);
+			}
+
+			:global(.desktop-icon .icon-image) {
+				width: 48px;
+				height: 48px;
+				font-size: 48px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));
+				margin-bottom: 4px;
+			}
+
+			:global(.desktop-icon .icon-label) {
+				color: white;
+				font-size: 11px;
+				text-align: center;
+				text-shadow:
+					1px 1px 2px rgba(0, 0, 0, 0.8),
+					-1px -1px 2px rgba(0, 0, 0, 0.8),
+					1px -1px 2px rgba(0, 0, 0, 0.8),
+					-1px 1px 2px rgba(0, 0, 0, 0.8);
+				line-height: 1.2;
+				word-wrap: break-word;
+				max-width: 100%;
+			}
+
+			:global(.desktop-icon.selected) {
+				background: rgba(51, 153, 255, 0.4);
+				border: 1px solid rgba(51, 153, 255, 0.6);
+			}
+
+			:global(.desktop-icon.selected .icon-label) {
+				background: #3399ff;
+				color: white;
+				padding: 1px 2px;
+			}
+
+			/* Drop target highlight when dragging folder over folder */
+			:global(.desktop-icon.drop-target) {
+				background: rgba(76, 175, 80, 0.3);
+				border: 2px dashed #4CAF50;
+				box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+			}
+
+			:global(.desktop-icon.drop-target .icon-label) {
+				background: #4CAF50;
+				color: white;
+				padding: 1px 2px;
+			}
+
+			/* Folder view styles */
+			:global(.folder-view) {
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+				overflow: hidden;
+			}
+
+			:global(.folder-toolbar) {
+				display: flex;
+				gap: 8px;
+				padding: 4px 8px;
+				background: linear-gradient(to bottom, #f3f3f3 0%, #e8e8e8 100%);
+				border-bottom: 1px solid #999;
+				align-items: center;
+			}
+
+			:global(.toolbar-section) {
+				display: flex;
+				gap: 4px;
+			}
+
+			:global(.toolbar-button) {
+				padding: 4px 8px;
+				background: #c0c0c0;
+				border: 2px solid;
+				border-color: #fff #808080 #808080 #fff;
+				cursor: pointer;
+				font-size: 14px;
+				font-family: 'Tahoma', sans-serif;
+			}
+
+			:global(.toolbar-button:hover) {
+				background: #d0d0d0;
+			}
+
+			:global(.toolbar-button:active) {
+				border-color: #808080 #fff #fff #808080;
+				background: #b0b0b0;
+			}
+
+			:global(.toolbar-address) {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				flex: 1;
+			}
+
+			:global(.address-label) {
+				font-size: 11px;
+				color: #333;
+				white-space: nowrap;
+			}
+
+			:global(.address-bar) {
+				flex: 1;
+				padding: 3px 6px;
+				border: 1px solid #7a96df;
+				border-radius: 2px;
+				background: white;
+				font-size: 11px;
+				min-width: 0;
+			}
+
+			:global(.folder-content-area) {
+				display: flex;
+				flex: 1;
+				overflow: hidden;
+			}
+
+			:global(.folder-sidebar) {
+				width: 180px;
+				background: linear-gradient(to right, #a1c7f2 0%, #d4e5fa 100%);
+				border-right: 1px solid #88a;
+				padding: 12px;
+				overflow-y: auto;
+			}
+
+			:global(.sidebar-section) {
+				margin-bottom: 16px;
+			}
+
+			:global(.sidebar-title) {
+				font-size: 12px;
+				font-weight: bold;
+				color: #003d79;
+				margin-bottom: 6px;
+			}
+
+			:global(.sidebar-link) {
+				display: block;
+				padding: 4px 8px;
+				font-size: 11px;
+				color: #003d79;
+				text-decoration: none;
+				margin-bottom: 2px;
+				border-radius: 2px;
+			}
+
+			:global(.sidebar-link:hover) {
+				background: rgba(255, 255, 255, 0.5);
+				text-decoration: underline;
+			}
+
+			:global(.folder-items) {
+				flex: 1;
+				background: white;
+				padding: 16px;
+				overflow-y: auto;
+				display: flex;
+				flex-wrap: wrap;
+				align-content: flex-start;
+				gap: 8px;
+			}
+
+			:global(.empty-folder-message) {
+				text-align: center;
+				color: #666;
+				padding: 40px 20px;
+			}
+
+			:global(.empty-folder-message p) {
+				font-size: 12px;
+			}
+
+			/* Folder grid items (subfolders within a folder) */
+			:global(.folder-grid-item) {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				width: 80px;
+				padding: 8px;
+				cursor: grab;
+				border: 1px solid transparent;
+				border-radius: 3px;
+				user-select: none;
+				-webkit-user-select: none;
+				touch-action: none;
+			}
+
+			:global(.folder-grid-item:active) {
+				cursor: grabbing;
+			}
+
+			:global(.folder-grid-item:hover) {
+				background: rgba(51, 153, 255, 0.1);
+				border: 1px solid rgba(51, 153, 255, 0.3);
+			}
+
+			:global(.folder-grid-item.selected) {
+				background: rgba(51, 153, 255, 0.4);
+				border: 1px solid rgba(51, 153, 255, 0.6);
+			}
+
+			:global(.folder-grid-item.dragging) {
+				opacity: 0.5;
+				transform: scale(0.95);
+				cursor: grabbing;
+			}
+
+			:global(.folder-grid-item.drop-target) {
+				background: rgba(76, 175, 80, 0.3);
+				border: 2px dashed #4CAF50;
+				box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+			}
+
+			:global(.folder-grid-icon) {
+				font-size: 48px;
+				margin-bottom: 4px;
+			}
+
+			:global(.folder-grid-label) {
+				font-size: 11px;
+				text-align: center;
+				word-wrap: break-word;
+				max-width: 100%;
+			}
+
+			/* Mobile optimization for folder view */
+			@media (max-width: 768px) {
+				:global(.folder-sidebar) {
+					display: none;
+				}
+
+				:global(.toolbar-address) {
+					flex-direction: column;
+					align-items: stretch;
+					gap: 4px;
+				}
+
+				:global(.address-bar) {
+					font-size: 14px;
+					padding: 6px;
+				}
+
+				:global(.toolbar-button) {
+					padding: 8px 12px;
+					font-size: 16px;
+				}
+			}
+
+		/* Global window styles for both static and dynamic windows */
+		:global(.window) {
+			position: fixed;
+			background: #ECE9D8;
+			border: 3px solid;
+			border-color: #0831D9 #0831D9 #0831D9 #0831D9;
+			border-radius: 8px 8px 0 0;
+			box-shadow:
+				0 0 0 1px #DCD9C8,
+				3px 3px 10px rgba(0, 0, 0, 0.4),
+				0 0 0 2px rgba(255, 255, 255, 0.1);
+			z-index: 100;
+			display: flex;
+			flex-direction: column;
+			min-width: 200px;
+			min-height: 150px;
+		}
+
+		:global(.window.active) {
+			z-index: 200;
+			border-color: #0831D9;
+		}
+
+		:global(.window.inactive) {
+			border-color: #7A96DF;
+		}
+
+		:global(.window-titlebar) {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			height: 32px;
+			background: linear-gradient(180deg,
+				#0997FF 0%,
+				#1C84FF 3%,
+				#0F6CE5 6%,
+				#0A5AD3 10%,
+				#0450C8 14%,
+				#0450C8 86%,
+				#0450C8 90%,
+				#0A5AD3 94%,
+				#1C6EEB 97%,
+				#2E82FF 100%
+			);
+			border-radius: 5px 5px 0 0;
+			padding: 0 3px 0 6px;
+			cursor: move;
+			user-select: none;
+			position: relative;
+		}
+
+		:global(.window-titlebar)::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 2px;
+			background: linear-gradient(90deg,
+				transparent 0%,
+				rgba(255, 255, 255, 0.5) 50%,
+				transparent 100%
+			);
+			border-radius: 5px 5px 0 0;
+		}
+
+		:global(.window.inactive .window-titlebar) {
+			background: linear-gradient(180deg,
+				#B7CAE8 0%,
+				#A9BDD9 10%,
+				#87A2CC 50%,
+				#7A96C5 90%,
+				#6C89B8 100%
+			);
+		}
+
+		:global(.titlebar-left) {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			overflow: hidden;
+		}
+
+		:global(.window-icon) {
+			font-size: 16px;
+			line-height: 1;
+			flex-shrink: 0;
+		}
+
+		:global(.window-title) {
+			color: white;
+			font-size: 11px;
+			font-weight: bold;
+			text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		:global(.titlebar-buttons) {
+			display: flex;
+			gap: 2px;
+		}
+
+		:global(.titlebar-button) {
+			width: 23px;
+			height: 23px;
+			border: 1px solid;
+			border-color: rgba(255, 255, 255, 0.7) rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.3) rgba(255, 255, 255, 0.7);
+			border-radius: 3px;
+			background: linear-gradient(180deg,
+				#F1F4FB 0%,
+				#E3EAFE 50%,
+				#D0DFFC 100%
+			);
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 14px;
+			font-weight: bold;
+			color: #000;
+			padding: 0;
+			line-height: 1;
+			box-shadow:
+				inset 1px 1px 0 rgba(255, 255, 255, 0.8),
+				0 1px 1px rgba(0, 0, 0, 0.1);
+		}
+
+		:global(.titlebar-button:hover) {
+			background: linear-gradient(180deg,
+				#FFF9E8 0%,
+				#FFEFCA 50%,
+				#FFE5AB 100%
+			);
+			border-color: rgba(255, 255, 255, 0.8) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.4) rgba(255, 255, 255, 0.8);
+		}
+
+		:global(.titlebar-button:active) {
+			background: linear-gradient(180deg,
+				#C5D5F0 0%,
+				#D0DFFC 50%,
+				#E3EAFE 100%
+			);
+			border-color: rgba(0, 0, 0, 0.4) rgba(255, 255, 255, 0.7) rgba(255, 255, 255, 0.7) rgba(0, 0, 0, 0.4);
+			box-shadow:
+				inset 0 1px 2px rgba(0, 0, 0, 0.2),
+				0 1px 1px rgba(255, 255, 255, 0.3);
+		}
+
+		:global(.titlebar-button.close) {
+			background: linear-gradient(180deg,
+				#FFB5A6 0%,
+				#FF9582 50%,
+				#FF7A61 100%
+			);
+			border-color: rgba(255, 255, 255, 0.7) rgba(139, 0, 0, 0.5) rgba(139, 0, 0, 0.5) rgba(255, 255, 255, 0.7);
+		}
+
+		:global(.titlebar-button.close:hover) {
+			background: linear-gradient(180deg,
+				#FFCFC4 0%,
+				#FFB09C 50%,
+				#FF9780 100%
+			);
+			border-color: rgba(255, 255, 255, 0.8) rgba(139, 0, 0, 0.6) rgba(139, 0, 0, 0.6) rgba(255, 255, 255, 0.8);
+		}
+
+		:global(.titlebar-button.close:active) {
+			background: linear-gradient(180deg,
+				#E67E6A 0%,
+				#FF9582 50%,
+				#FFB5A6 100%
+			);
+			border-color: rgba(139, 0, 0, 0.5) rgba(255, 255, 255, 0.7) rgba(255, 255, 255, 0.7) rgba(139, 0, 0, 0.5);
+		}
+
+		:global(.button-icon) {
+			display: block;
+			line-height: 1;
+		}
+
+		:global(.minimize .button-icon) {
+			margin-top: 8px;
+			font-size: 12px;
+		}
+
+		:global(.maximize .button-icon) {
+			font-size: 16px;
+		}
+
+		:global(.close .button-icon) {
+			font-size: 18px;
+			margin-top: -2px;
+		}
+
+		:global(.window-content) {
+			flex: 1;
+			background: #ECE9D8;
+			overflow: auto;
+			padding: 8px;
+			border: 2px solid;
+			border-color: #FFF #ACA899 #ACA899 #FFF;
+			border-top: none;
+		}
+		</style>
 	</head>
 	<body>
-		<h1>Astro</h1>
+		<OrientationGuard />
+		<Desktop>
+			<div class="desktop-icons">
+				<DesktopIcon icon="💻" label="Mój komputer" windowId="my-computer" />
+				<DesktopIcon icon="📁" label="Moje Dokumenty" windowId="my-documents" />
+				<DesktopIcon icon="🗑️" label="Kosz" windowId="recycle-bin" />
+				<DesktopIcon icon="💣" label="Saper" windowId="minesweeper" />
+				<DesktopIcon icon="🃏" label="Pasjans" windowId="solitaire" />
+				<DesktopIcon icon="🎨" label="Paint" windowId="paint" />
+			</div>
+		</Desktop>
+
+		<!-- Windows -->
+		<Window id="my-computer" title="Mój komputer" icon="💻" defaultX={50} defaultY={50} width={600} height={450}>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" title="Do przodu">➡️</button>
+						<button class="toolbar-button" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="Mój komputer" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Szczegóły systemu</div>
+							<div class="sidebar-content" style="font-size: 11px; color: #003d79; padding: 4px 8px;">
+								<p>Windows XP</p>
+								<p>Symulator</p>
+							</div>
+						</div>
+					</div>
+					<div class="folder-items">
+						<div class="drives-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; padding: 16px;">
+							<!-- Drive C: -->
+							<div class="drive-item" data-drive="c" style="display: flex; flex-direction: column; align-items: center; padding: 12px; cursor: pointer; border: 1px solid transparent; border-radius: 4px;">
+								<div style="font-size: 64px; margin-bottom: 8px;">💾</div>
+								<div style="font-size: 12px; font-weight: bold; text-align: center;">Dysk lokalny (C:)</div>
+							</div>
+							<!-- Drive D: -->
+							<div class="drive-item" data-drive="d" style="display: flex; flex-direction: column; align-items: center; padding: 12px; cursor: pointer; border: 1px solid transparent; border-radius: 4px;">
+								<div style="font-size: 64px; margin-bottom: 8px;">💿</div>
+								<div style="font-size: 12px; font-weight: bold; text-align: center;">Dysk lokalny (D:)</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Window>
+
+		<Window id="drive-c" title="Dysk lokalny (C:)" icon="💾" defaultX={120} defaultY={100} width={600} height={450}>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" data-nav="back" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" data-nav="forward" title="Do przodu">➡️</button>
+						<button class="toolbar-button" data-nav="up" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="C:\" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Zadania folderów</div>
+							<a href="#" class="sidebar-link">Utwórz nowy folder</a>
+						</div>
+					</div>
+					<div class="folder-items" data-drive-content="c">
+						<div class="empty-folder-message">
+							<p>Dysk C: jest pusty.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Window>
+
+		<Window id="drive-d" title="Dysk lokalny (D:)" icon="💿" defaultX={170} defaultY={130} width={600} height={450}>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" data-nav="back" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" data-nav="forward" title="Do przodu">➡️</button>
+						<button class="toolbar-button" data-nav="up" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="D:\" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Zadania folderów</div>
+							<a href="#" class="sidebar-link">Utwórz nowy folder</a>
+						</div>
+					</div>
+					<div class="folder-items" data-drive-content="d">
+						<div class="empty-folder-message">
+							<p>Dysk D: jest pusty.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Window>
+
+		<Window id="my-documents" title="Moje Dokumenty" icon="📁" defaultX={100} defaultY={80} width={500} height={400}>
+			<div class="folder-view">
+				<div class="folder-toolbar">
+					<div class="toolbar-section">
+						<button class="toolbar-button" title="Wstecz">⬅️</button>
+						<button class="toolbar-button" title="Do przodu">➡️</button>
+						<button class="toolbar-button" title="W górę">⬆️</button>
+					</div>
+					<div class="toolbar-address">
+						<span class="address-label">Adres:</span>
+						<input type="text" class="address-bar" value="Moje Dokumenty" readonly>
+					</div>
+				</div>
+				<div class="folder-content-area">
+					<div class="folder-sidebar">
+						<div class="sidebar-section">
+							<div class="sidebar-title">Zadania folderów</div>
+							<a href="#" class="sidebar-link">Utwórz nowy folder</a>
+						</div>
+						<div class="sidebar-section">
+							<div class="sidebar-title">Inne miejsca</div>
+							<a href="#" class="sidebar-link">Mój komputer</a>
+							<a href="#" class="sidebar-link">Kosz</a>
+						</div>
+					</div>
+					<div class="folder-items">
+						<div class="empty-folder-message">
+							<p>Ten folder jest pusty.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Window>
+
+		<Window id="recycle-bin" title="Kosz" icon="🗑️" defaultX={150} defaultY={120} width={500} height={400}>
+			<p>Kosz jest pusty.</p>
+		</Window>
+
+		<Window id="minesweeper" title="Saper" icon="💣" defaultX={200} defaultY={100} width={400} height={550}>
+			<Minesweeper />
+		</Window>
+
+		<Window id="solitaire" title="Pasjans" icon="🃏" defaultX={250} defaultY={50} width={700} height={600}>
+			<Solitaire />
+		</Window>
+
+		<Window id="paint" title="Paint" icon="🎨" defaultX={100} defaultY={50} width={900} height={700}>
+			<Paint />
+		</Window>
+
+		<TaskBar />
+		<StartMenu />
+		<ContextMenu />
+
+		<script>
+			import { initWindowManager } from '../scripts/windowManager';
+			import { initContextMenuManager } from '../scripts/contextMenuManager';
+			import { initFolderManager } from '../scripts/folderManager';
+
+			// Initialize drive interactions
+			function initDriveItems(): void {
+				const driveItems = document.querySelectorAll('.drive-item');
+
+				driveItems.forEach(drive => {
+					const driveEl = drive as HTMLElement;
+
+					// Hover effects
+					driveEl.addEventListener('mouseenter', () => {
+						driveEl.style.background = 'rgba(51, 153, 255, 0.15)';
+						driveEl.style.border = '2px solid';
+						driveEl.style.borderColor = '#fff #808080 #808080 #fff';
+					});
+
+					driveEl.addEventListener('mouseleave', () => {
+						driveEl.style.background = 'transparent';
+						driveEl.style.border = '1px solid transparent';
+					});
+
+					// Double-click to open drive
+					driveEl.addEventListener('dblclick', async () => {
+						const driveLetter = driveEl.dataset.drive;
+						if (driveLetter) {
+							const { openWindow } = await import('../scripts/windowManager');
+							openWindow(`drive-${driveLetter}`);
+						}
+					});
+				});
+			}
+
+			// Initialize managers when DOM is ready
+			document.addEventListener('DOMContentLoaded', () => {
+				initFolderManager();
+				initWindowManager();
+				initContextMenuManager();
+				initDriveItems();
+			});
+		</script>
 	</body>
 </html>
