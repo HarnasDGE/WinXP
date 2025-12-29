@@ -159,20 +159,21 @@ import Paint from '../components/Paint.astro';
 
 			:global(.toolbar-button) {
 				padding: 4px 8px;
-				background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-				border: 1px solid #999;
-				border-radius: 2px;
+				background: #c0c0c0;
+				border: 2px solid;
+				border-color: #fff #808080 #808080 #fff;
 				cursor: pointer;
 				font-size: 14px;
+				font-family: 'Tahoma', sans-serif;
 			}
 
 			:global(.toolbar-button:hover) {
-				background: linear-gradient(to bottom, #fff 0%, #f0f0f0 100%);
-				border-color: #0066cc;
+				background: #d0d0d0;
 			}
 
 			:global(.toolbar-button:active) {
-				background: linear-gradient(to bottom, #e8e8e8 0%, #fff 100%);
+				border-color: #808080 #fff #fff #808080;
+				background: #b0b0b0;
 			}
 
 			:global(.toolbar-address) {
@@ -676,13 +677,14 @@ import Paint from '../components/Paint.astro';
 
 					// Hover effects
 					driveEl.addEventListener('mouseenter', () => {
-						driveEl.style.background = 'rgba(51, 153, 255, 0.1)';
-						driveEl.style.borderColor = 'rgba(51, 153, 255, 0.3)';
+						driveEl.style.background = 'rgba(51, 153, 255, 0.15)';
+						driveEl.style.border = '2px solid';
+						driveEl.style.borderColor = '#fff #808080 #808080 #fff';
 					});
 
 					driveEl.addEventListener('mouseleave', () => {
 						driveEl.style.background = 'transparent';
-						driveEl.style.borderColor = 'transparent';
+						driveEl.style.border = '1px solid transparent';
 					});
 
 					// Double-click to open drive
