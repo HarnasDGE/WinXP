@@ -35,6 +35,10 @@ let dragStartX = 0;
 let dragStartY = 0;
 const DRAG_THRESHOLD = 5; // pixels to move before starting drag
 
+// Grid snapping for icons
+const GRID_SIZE_X = 80; // horizontal spacing
+const GRID_SIZE_Y = 88; // vertical spacing (slightly taller for label)
+
 // Drop target for folder-into-folder
 let dropTargetIcon: HTMLElement | null = null;
 
@@ -50,6 +54,38 @@ interface WindowState {
 }
 
 const windowStates = new Map<string, WindowState>();
+
+/**
+ * Snaps coordinates to grid
+ */
+function snapToGrid(x: number, y: number): { x: number; y: number } {
+  return {
+    x: Math.round(x / GRID_SIZE_X) * GRID_SIZE_X,
+    y: Math.round(y / GRID_SIZE_Y) * GRID_SIZE_Y
+  };
+}
+
+/**
+ * Saves icon position to localStorage for custom folders
+ */
+async function saveIconPosition(iconId: string, x: number, y: number): Promise<void> {
+  // Skip system folders
+  if (iconId === 'my-documents' || iconId === 'recycle-bin') return;
+
+  try {
+    const { getCustomFolders } = await import('./folderManager');
+    const folders = getCustomFolders();
+    const folder = folders.find(f => f.id === iconId);
+
+    if (folder) {
+      folder.x = x;
+      folder.y = y;
+      localStorage.setItem('winxp-folders', JSON.stringify(folders));
+    }
+  } catch (e) {
+    console.error('Failed to save icon position:', e);
+  }
+}
 
 /**
  * Creates taskbar button for a window
@@ -429,6 +465,20 @@ function handleEnd(): void {
     // Remove drop target highlight
     dropTargetIcon.classList.remove('drop-target');
     dropTargetIcon = null;
+  } else if (isDraggingIcon && currentIcon) {
+    // Snap icon to grid when dropped (if not dropped on another folder)
+    const currentX = parseInt(currentIcon.style.left) || 0;
+    const currentY = parseInt(currentIcon.style.top) || 0;
+    const snapped = snapToGrid(currentX, currentY);
+
+    currentIcon.style.left = `${snapped.x}px`;
+    currentIcon.style.top = `${snapped.y}px`;
+
+    // Save position to localStorage
+    const iconId = currentIcon.dataset.windowId;
+    if (iconId) {
+      saveIconPosition(iconId, snapped.x, snapped.y);
+    }
   }
 
   isDragging = false;
