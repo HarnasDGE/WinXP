@@ -689,7 +689,7 @@ import Paint from '../components/Paint.astro';
 					driveEl.addEventListener('dblclick', async () => {
 						const driveLetter = driveEl.dataset.drive;
 						if (driveLetter) {
-							const { openWindow } = await import('./scripts/windowManager');
+							const { openWindow } = await import('../scripts/windowManager');
 							openWindow(`drive-${driveLetter}`);
 						}
 					});
